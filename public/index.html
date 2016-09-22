@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket chat</title>
+    <meta charset="utf-8"/>
+</head>
+<body>
+<div class="control-panel">
+    <section id="tab-area" class="tab-area tabs-checked">
+        <input class="tab-link" checked="" type="radio" name="tab" id="logIn">
+        <input class="tab-link" type="radio" name="tab" id="signUp">
+        <label class="tab-link-label" for="logIn">Log In</label>
+        <label class="tab-link-label" for="signUp">Sign Up</label>
+        <article class="tab">
+            <h2>Log In</h2>
+            <form id="logInForm">
+                <label for=""><input type="text" name="loginUser" placeholder="Username"></label>
+                <label for=""><input type="password" name="loginPassword" placeholder="Password"></label>
+                <input type="button" id="logInBtn" value="Join">
+            </form>
+        </article>
+        <article class="tab">
+            <form id="signUpForm">
+                <h2>Sign Up</h2>
+                <label for=""><input type="text" name="signupUser" placeholder="Username"></label>
+                <label for=""><input type="password" name="signupPassword" placeholder="Password"></label>
+                <input type="button" id="signUpBtn" value="Join">
+            </form>
+        </article>
+    </section>
+</div>
+
+<div class="ui">
+    <div class="left-menu">
+        <form action="#" class="search">
+            <input placeholder="search..." type="search" name="" id="">
+            <input type="submit" value="&#xf002;">
+        </form>
+<!--        <label for="clientsOnline"><input type="checkbox" id="clientsOnline"></label>-->
+        <menu class="list-friends" id="clients"></menu>
+    </div>
+    <div class="chat">
+        <div class="top">
+            <div class="avatar">
+                <label for="avatarImg" class="avatarImg">
+                    <img id="avatar" width="50" height="50" src="images/offline.png" title="change avatar">
+                    <input type="file" disabled id="avatarImg" accept="image/*" style="display:none">
+                </label>
+
+            </div>
+            <div class="info">
+                <div class="name" id="currentUser"></div>
+                <!-- <div class="count">already 1 902 messages</div>-->
+            </div>
+            <input type="button" id="logOutBtn" value="Log Out">
+            <i id="removeUser" title="remove client" class="fa fa-star"></i>
+        </div>
+        <ul class="messages" id="messages"></ul>
+        <div class="write-form">
+            <textarea placeholder="Sign up or Log in" disabled id="messageTxt" name="message" rows="2"></textarea>
+
+            <div id="type-status"></div>
+
+            <label for="imgElem" id="imgSelect" class="fa fa-picture-o">
+                <input type="file" id="imgElem" accept="image/*" style="display:none">
+            </label>
+            <span class="send" id="sendMessage" disabled>Send</span>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="css/normalize.css">
+<link rel="stylesheet" href="css/style.css">
+<script src="bundle.js"></script>
+</body>
+</html>

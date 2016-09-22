@@ -1,0 +1,15 @@
+node_modules/
+
+# Exclude all idea related project files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Exclude other generated items
+test-output/
+.DS_Store
+.checkstyle
+.pmd
+.pmdruleset.xml
+

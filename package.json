@@ -1,0 +1,26 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "description": "Create nodejs chat using native web sockets,es6, mongodb and webpack build ",
+  "main": "server.js",
+  "scripts": {
+    "dev": "webpack --display-error-details --config ./webpack.config.js --colors --progress -d",
+    "server": "webpack-dev-server --progress --colors "
+  },
+  "author": "Alexeenkova Tatyana",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.13.4",
+    "ws": "^1.1.1"
+  },
+  "devDependencies": {
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-react": "^6.11.1",
+    "mongoose": "^4.5.8",
+    "webpack": "^1.13.2",
+    "webpack-dev-server": "^1.15.2"
+  }
+}

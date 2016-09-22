@@ -1,0 +1,36 @@
+Homework
+Here are some ideas to improve the application:
+
+Save all messages to data base MongoLab or Reddis -done
+Broadcast a message to connected users when someone connects or disconnects -done
+Add support for nicknames -done
+Don’t send the same message to the user that sent it himself. Instead, append the message directly as soon as he presses enter.
+Add “{user} is typing” functionality ---done
+Show who’s online -done
+Show the last 20 messages to new user -done
+Add private messaging
+Log in -done
+???????????
+???????????? ????
+?????? ???????
+?????
+Enter
+????????
+
+Chat:
+Log In, Log out, Sign in -done
+Data base -done
+Show who’s online -done
+Hide all messages form non login user, Show the last 20 messages to new user -done
++Add private message
++Add “{user} is typing” functionality -done
++smiles
++transfer files -done
+
+React
+User profile
+Add avatar
+connect to chat messages
+
+
+
