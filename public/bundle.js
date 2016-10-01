@@ -158,7 +158,7 @@
 	                    break;
 	                case 'avatar':
 	                    clientsHelper.setClientAvatar(incomingMessage);
-	                    var msg = messageHelper.createMessage('message', user + ' changed avatar', 'admin', user);
+	                    var msg = messageHelper.createMessage('message', 'User ' + user + ' changed avatar', 'admin', user);
 	                    socket.send(JSON.stringify(msg));
 	                    break;
 	                case 'leave':
@@ -248,7 +248,6 @@
 	        },
 	        changeAvatar: function changeAvatar() {
 	            var file = this.files && this.files[0];
-	            console.log(file);
 	            var reader = new FileReader();
 	            reader.addEventListener("load", function () {
 	                var user = sessionStorage.getItem('currentUser');
@@ -308,7 +307,8 @@
 	            info.className = "info";
 	            user.className = "user";
 	            status.className = msg.online ? "status on" : "status off";
-	            img.setAttribute('src', msg.avatar || defaultImgSrc);
+	            var imgSrc = msg.avatar ? msg.avatar.replace(/ /ig, '+') : defaultImgSrc;
+	            img.setAttribute('src', imgSrc);
 	            img.setAttribute('width', '50');
 	            img.setAttribute('height', '50');
 	            if (msg.name === currentUser) {
@@ -323,7 +323,8 @@
 	            var messageText = messageElem.appendChild(document.createElement('div'));
 	            if (msg.type === 'image') {
 	                var img = document.createElement('img');
-	                img.setAttribute('src', msg.text);
+	                var imgSrc = msg.text.replace(/ /ig, '+');
+	                img.setAttribute('src', imgSrc);
 	                img.setAttribute('width', '50');
 	                img.setAttribute('height', '50');
 	                messageText.appendChild(img);
@@ -499,8 +500,9 @@
 	            });
 	        },
 	        connectClient: function connectClient(username) {
-	            username && this.getClients().then(function (clients) {
-	                document.getElementById('avatar').src = clients[username].avatar;
+	            var currentUser = sessionStorage.getItem('currentUser');
+	            username && currentUser === username && this.getClients().then(function (clients) {
+	                document.getElementById('avatar').src = clients[username].avatar.replace(/ /ig, '+');
 	            });
 	        },
 	        removeClient: function removeClient() {
@@ -510,7 +512,10 @@
 	        setClientAvatar: function setClientAvatar(msg) {
 	            var _this = this;
 	
-	            document.getElementById('avatar').src = msg.text;
+	            var username = sessionStorage.getItem('currentUser');
+	            if (username === msg.username) {
+	                document.getElementById('avatar').src = msg.text;
+	            }
 	            var update = {
 	                avatar: msg.text,
 	                name: msg.username

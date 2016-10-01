@@ -32,8 +32,9 @@ module.exports = function () {
 
         },
         connectClient(username){
-            username && this.getClients().then((clients) => {
-                document.getElementById('avatar').src = clients[username].avatar
+            var currentUser = sessionStorage.getItem('currentUser');
+            username && (currentUser === username) && this.getClients().then((clients) => {
+                document.getElementById('avatar').src =clients[username].avatar.replace(/ /ig,'+')
             });
 
         },
@@ -43,7 +44,10 @@ module.exports = function () {
             });
         },
         setClientAvatar(msg){
-            document.getElementById('avatar').src = msg.text;
+            var username = sessionStorage.getItem('currentUser');
+            if(username === msg.username){
+                document.getElementById('avatar').src = msg.text;
+            }
             var update = {
                 avatar: msg.text,
                 name: msg.username

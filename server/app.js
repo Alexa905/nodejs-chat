@@ -4,22 +4,23 @@ var server = require('http').createServer(),
     wss = new WebSocketServer({server: server}),
     express = require('express'),
     app = express(),
-    port = 3001;
-var clientId = 0, clientsOnline = {}, allClients = {}, allMessages = [];
-var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
+    port = 3001,
+    clientId = 0,
+    clientsOnline = {},
+    allClients = {},
+    allMessages = [],
+    bodyParser = require('body-parser'),
+    mongoose = require('mongoose'),
+    User = require('./models/User'),
+    Message = require('./models/Message');
+
 mongoose.connect('mongodb://x:y@ds029635.mlab.com:29635/nodejs-chat');
-// Use native promises
 mongoose.Promise = global.Promise;
 
-var User = require('./models/User');
-var Message = require('./models/Message');
-
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/../public'));
 app.use(bodyParser.urlencoded({extended: true}));
-
 app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(__dirname + '/../public/index.html');
 });
 
 app.put('/clients', function (req, res) {
@@ -74,7 +75,7 @@ app.get('/messages', (req, res) => {
         Message.find({}, function (err, messages) {
             if (err) throw err;
             res.statusCode = 200;
-            Object.assign(allMessages,  messages);
+            Object.assign(allMessages, messages);
             res.send(JSON.stringify(messages));
         });
     }
@@ -117,7 +118,6 @@ app.post('/clients', (req, res) => {
 wss.broadcast = function broadcast(data) {
     wss.clients.forEach(function each(client) {
         client.send(data);
-
     });
 };
 
@@ -137,11 +137,14 @@ wss.on('connection', function connection(ws) {
                 clientsOnline[thisId] = msg.username;
                 break;
             case 'leave':
-                if(allClients[msg.username]) {
+                if (allClients[msg.username]) {
                     allClients[msg.username].online = false;
                 }
                 break;
             case 'avatar':
+                if (allClients[msg.username]) {
+                    allClients[msg.username].avatar = msg.text;
+                }
                 break;
             default:
                 break

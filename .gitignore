@@ -1,4 +1,5 @@
 node_modules/
+local/
 
 # Exclude all idea related project files
 .idea/

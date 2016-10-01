@@ -23,7 +23,8 @@ module.exports = function (socket) {
             info.className = "info";
             user.className = "user";
             status.className = msg.online ? "status on" : "status off";
-            img.setAttribute('src', msg.avatar || defaultImgSrc );
+            var imgSrc = msg.avatar ? msg.avatar.replace(/ /ig,'+') : defaultImgSrc;
+            img.setAttribute('src', imgSrc );
             img.setAttribute('width', '50');
             img.setAttribute('height', '50');
             if (msg.name === currentUser) {
@@ -38,7 +39,8 @@ module.exports = function (socket) {
             var messageText = messageElem.appendChild(document.createElement('div'));
             if (msg.type === 'image') {
                 var img = document.createElement('img');
-                img.setAttribute('src', msg.text);
+                var imgSrc = msg.text.replace(/ /ig,'+');
+                img.setAttribute('src', imgSrc);
                 img.setAttribute('width', '50');
                 img.setAttribute('height', '50');
                 messageText.appendChild(img);

@@ -5,6 +5,10 @@
     <meta charset="utf-8"/>
 </head>
 <body>
+<div id="openModal" class="modalDialog">
+    <div><a href="#close" title="Close" class="fa fa-close">X</a>
+    </div>
+</div>
 <div class="control-panel">
     <section id="tab-area" class="tab-area tabs-checked">
         <input class="tab-link" checked="" type="radio" name="tab" id="logIn">
@@ -33,17 +37,17 @@
 <div class="ui">
     <div class="left-menu">
         <form action="#" class="search">
-            <input placeholder="search..." type="search" name="" id="">
+            <input placeholder="search doesn't work" type="search" name="" id="">
             <input type="submit" value="&#xf002;">
         </form>
-<!--        <label for="clientsOnline"><input type="checkbox" id="clientsOnline"></label>-->
+        <!--        <label for="clientsOnline"><input type="checkbox" id="clientsOnline"></label>-->
         <menu class="list-friends" id="clients"></menu>
     </div>
     <div class="chat">
         <div class="top">
             <div class="avatar">
                 <label for="avatarImg" class="avatarImg">
-                    <img id="avatar" width="50" height="50" src="images/offline.png" title="change avatar">
+                    <img id="avatar" width="50" height="50" src="images/offline.png" title="CHANGE AVATAR">
                     <input type="file" disabled id="avatarImg" accept="image/*" style="display:none">
                 </label>
 
@@ -53,7 +57,9 @@
                 <!-- <div class="count">already 1 902 messages</div>-->
             </div>
             <input type="button" id="logOutBtn" value="Log Out">
-            <i id="removeUser" title="remove client" class="fa fa-star"></i>
+            <i id="removeUser" title="REMOVE USER" class="fa fa-remove"></i>
+            <!--      <a id="userProfile" title="Profile" class="fa fa-user" href="#openModal"></a>-->
+
         </div>
         <ul class="messages" id="messages"></ul>
         <div class="write-form">

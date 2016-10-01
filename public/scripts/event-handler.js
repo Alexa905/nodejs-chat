@@ -71,7 +71,7 @@ module.exports = function (socket) {
                     break;
                 case 'avatar':
                     clientsHelper.setClientAvatar(incomingMessage);
-                    var msg = messageHelper.createMessage('message', `${user} changed avatar`, 'admin', user)
+                    var msg = messageHelper.createMessage('message', `User ${user} changed avatar`, 'admin', user)
                     socket.send(JSON.stringify(msg));
                     break;
                 case 'leave':
@@ -156,7 +156,6 @@ module.exports = function (socket) {
         },
         changeAvatar (){
             var file = this.files && this.files[0];
-            console.log(file)
             var reader = new FileReader();
             reader.addEventListener("load", function () {
                 var user = sessionStorage.getItem('currentUser');

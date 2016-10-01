@@ -1,6 +1,3 @@
-var path = require('path');
-var webpack = require('webpack');
-
 module.exports = {
     entry: './public/scripts/ws-client.js',
     watch: true,
