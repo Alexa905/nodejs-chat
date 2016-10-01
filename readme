@@ -1,6 +1,8 @@
 **Node.js** chat application with pure **webSockets** on client side, **es6** (transpiled using **babel** and **webpack**) and storing data in **MongoDB**
 
 Start application: `node server/app.js`
+This [demo](https://nodejswschat.herokuapp.com/)
+
 
 User is able to join the chat server after entering his name and password
  - User can leave chat anytime

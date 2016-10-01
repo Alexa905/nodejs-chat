@@ -4,6 +4,7 @@
   "description": "Create nodejs chat using native web sockets,es6, mongodb and webpack build ",
   "main": "server.js",
   "scripts": {
+    "start":"node server/app.js ",
     "dev": "webpack --display-error-details --config ./webpack.config.js --colors --progress -d"
   },
   "author": "Alexeenkova Tatyana",
