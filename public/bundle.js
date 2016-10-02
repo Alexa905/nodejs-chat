@@ -52,8 +52,9 @@
 	if (!window.WebSocket) {
 	    document.body.innerHTML = 'WebSocket is not supported in this browser.';
 	}
-	
-	var socket = new WebSocket('wss://nodejswschat.herokuapp.com');
+	var host = document.location.host;
+	var ws = host !== -1 ? 'ws' : 'wss';
+	var socket = new WebSocket(ws + '://' + host);
 	var helper = __webpack_require__(/*! ./event-handler */ 1)(socket);
 	var clientsHelper = __webpack_require__(/*! ./clients */ 5)();
 	
@@ -323,7 +324,7 @@
 	            var messageText = messageElem.appendChild(document.createElement('div'));
 	            if (msg.type === 'image') {
 	                var img = document.createElement('img');
-	                var imgSrc = msg.text.replace(/ /ig, '+');
+	                var imgSrc = msg.text.replace(/ /ig, '+'); // fix base64 format after saving in MongoLab
 	                img.setAttribute('src', imgSrc);
 	                img.setAttribute('width', '50');
 	                img.setAttribute('height', '50');
@@ -409,6 +410,8 @@
 	                        msgBlock.insertBefore(messageElem, msgBlock.firstChild);
 	                    }
 	                }
+	                var scrollArea = document.getElementById('messages');
+	                scrollArea.scrollTop = scrollArea.scrollHeight;
 	            });
 	        }
 	    };

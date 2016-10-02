@@ -39,7 +39,7 @@ module.exports = function (socket) {
             var messageText = messageElem.appendChild(document.createElement('div'));
             if (msg.type === 'image') {
                 var img = document.createElement('img');
-                var imgSrc = msg.text.replace(/ /ig,'+');
+                var imgSrc = msg.text.replace(/ /ig,'+'); // fix base64 format after saving in MongoLab
                 img.setAttribute('src', imgSrc);
                 img.setAttribute('width', '50');
                 img.setAttribute('height', '50');

@@ -1,6 +1,6 @@
 **Node.js** chat application with pure **webSockets** on client side, **es6** (transpiled using **babel** and **webpack**) and storing data in **MongoDB**
 
-Start application: `node server/app.js`, go to `localhost:3001`
+Start application: `npm i`, `npm start`, then go to `localhost:3001`
 
 This [demo](https://nodejswschat.herokuapp.com/)
 

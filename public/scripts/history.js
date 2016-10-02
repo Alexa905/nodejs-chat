@@ -24,6 +24,8 @@ module.exports = function () {
                         msgBlock.insertBefore(messageElem, msgBlock.firstChild)
                     }
                 }
+                var scrollArea = document.getElementById('messages');
+                scrollArea.scrollTop = scrollArea.scrollHeight;
             });
 
         }
