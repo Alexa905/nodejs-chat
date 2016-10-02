@@ -146,10 +146,10 @@ module.exports = function (socket) {
             reader.addEventListener("load", function () {
                 var user = sessionStorage.getItem('currentUser');
                 var msg = messageHelper.createMessage('avatar', reader.result, 'admin', user);
-                historyHelper.updateHistory(msg);
                 socket.send(JSON.stringify(msg));
                 var msgAdmin = messageHelper.createMessage('message', `User ${user} changed avatar`, 'admin', user)
                 socket.send(JSON.stringify(msgAdmin));
+                historyHelper.updateHistory(msgAdmin);
             });
             if (file) {
                 reader.readAsDataURL(file)
