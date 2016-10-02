@@ -52,8 +52,8 @@
 	if (!window.WebSocket) {
 	    document.body.innerHTML = 'WebSocket is not supported in this browser.';
 	}
-	
-	var socket = new WebSocket('ws://localhost:3001');
+	var host = NODE_ENV === 'production' ? 'nodejswschat.herokuapp.com' : 'localhost';
+	var socket = new WebSocket('ws://' + host + ':3001');
 	var helper = __webpack_require__(/*! ./event-handler */ 1)(socket);
 	var clientsHelper = __webpack_require__(/*! ./clients */ 5)();
 	
@@ -101,7 +101,7 @@
 	            return sessionStorage.getItem('currentUser');
 	        },
 	        setCurrentUser: function setCurrentUser() {
-	            var username = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+	            var username = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
 	
 	            document.getElementById('currentUser').innerHTML = username;
 	            sessionStorage.setItem('currentUser', username);
@@ -225,7 +225,7 @@
 	            var _this4 = this;
 	
 	            var user = sessionStorage.getItem('currentUser');
-	            var confirmation = confirm('Вы уверенры что хотите удалить пользователя ' + user + '?');
+	            var confirmation = confirm('\u0412\u044B \u0443\u0432\u0435\u0440\u0435\u043D\u0440\u044B \u0447\u0442\u043E \u0445\u043E\u0442\u0438\u0442\u0435 \u0443\u0434\u0430\u043B\u0438\u0442\u044C \u043F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044F ' + user + '?');
 	            if (confirmation) {
 	                clientsHelper.removeClient().then(function () {
 	                    _this4.disconnectUser(user);
@@ -397,7 +397,7 @@
 	            });
 	        },
 	        showHistory: function showHistory() {
-	            var length = arguments.length <= 0 || arguments[0] === undefined ? 20 : arguments[0];
+	            var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 20;
 	
 	            this.getHistory().then(function (messages) {
 	                var msgBlock = document.getElementById('messages');

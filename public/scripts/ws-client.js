@@ -1,25 +1,25 @@
 if (!window.WebSocket) {
     document.body.innerHTML = 'WebSocket is not supported in this browser.';
 }
-
-var socket = new WebSocket('ws://localhost:3001');
+var host = NODE_ENV === 'production' ? 'nodejswschat.herokuapp.com' : 'localhost';
+var socket = new WebSocket('ws://' + host + ':3001');
 var helper = require('./event-handler')(socket);
 var clientsHelper = require('./clients')();
 
 
 helper.init();
 
-socket.onopen = ()  => {
+socket.onopen = () => {
     var currentUser = helper.getCurrentUser();
     currentUser ? helper.connectUser(currentUser) : clientsHelper.showClients();
 };
-socket.onerror = (e)  => {
+socket.onerror = (e) => {
     socket.send('error' + e);
 };
-socket.onclose = ()  => {
+socket.onclose = () => {
     helper.disconnectUser();
 };
-socket.onmessage = (event)  => {
+socket.onmessage = (event) => {
     helper.handleMessage(event);
 
 };
