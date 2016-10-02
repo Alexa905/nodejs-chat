@@ -1,8 +1,7 @@
 if (!window.WebSocket) {
     document.body.innerHTML = 'WebSocket is not supported in this browser.';
 }
-var host = process.env.NODE_ENV === 'production' ? 'nodejswschat.herokuapp.com' : 'localhost';
-var socket = new WebSocket('ws://' + host + ':' + process.env.PORT);
+var socket = new WebSocket('ws://nodejswschat.herokuapp.com/5135');
 var helper = require('./event-handler')(socket);
 var clientsHelper = require('./clients')();
 
