@@ -53,7 +53,7 @@
 	    document.body.innerHTML = 'WebSocket is not supported in this browser.';
 	}
 	var host = document.location.host;
-	var ws = host !== -1 ? 'ws' : 'wss';
+	var ws = host.indexOf('localhost') !== -1 ? 'ws' : 'wss';
 	var socket = new WebSocket(ws + '://' + host);
 	var helper = __webpack_require__(/*! ./event-handler */ 1)(socket);
 	var clientsHelper = __webpack_require__(/*! ./clients */ 5)();
@@ -68,7 +68,9 @@
 	    socket.send('error' + e);
 	};
 	socket.onclose = function () {
-	    helper.disconnectUser();
+	    if (clientsHelper.isClientOnline(helper.getCurrentUser())) {
+	        helper.disconnectUser();
+	    }
 	};
 	socket.onmessage = function (event) {
 	    helper.handleMessage(event);
@@ -147,7 +149,6 @@
 	        },
 	        handleMessage: function handleMessage(event) {
 	            var incomingMessage = JSON.parse(event.data);
-	            var user = this.getCurrentUser();
 	            switch (incomingMessage.type) {
 	                case 'typing':
 	                    var type = document.getElementById("type-status");
@@ -155,36 +156,21 @@
 	                    window.setTimeout(function () {
 	                        isTyping = false;
 	                        type.innerHTML = '';
-	                    }, 3000);
+	                    }, 2500);
+	                    break;
+	                case 'join':
+	                    messageHelper.showMessage(incomingMessage);
+	                    clientsHelper.connectClient(incomingMessage.username);
+	                    break;
+	                case 'leave':
+	                    messageHelper.showMessage(incomingMessage);
+	                    clientsHelper.disconnectClient(incomingMessage.username);
 	                    break;
 	                case 'avatar':
 	                    clientsHelper.setClientAvatar(incomingMessage);
-	                    var msg = messageHelper.createMessage('message', 'User ' + user + ' changed avatar', 'admin', user);
-	                    socket.send(JSON.stringify(msg));
-	                    break;
-	                case 'leave':
-	                    user && clientsHelper.isClientOnline(user).then(function (isClientOnline) {
-	                        if (isClientOnline) {
-	                            messageHelper.showMessage(incomingMessage);
-	                        }
-	                    });
-	                    clientsHelper.showClients();
-	                    break;
-	                case 'join':
-	                    user && clientsHelper.isClientOnline(user).then(function (isClientOnline) {
-	                        if (isClientOnline) {
-	                            messageHelper.showMessage(incomingMessage);
-	                            clientsHelper.connectClient(incomingMessage.username);
-	                        }
-	                    });
-	                    clientsHelper.showClients();
 	                    break;
 	                default:
-	                    user && clientsHelper.isClientOnline(user).then(function (isClientOnline) {
-	                        if (isClientOnline) {
-	                            messageHelper.showMessage(incomingMessage);
-	                        }
-	                    });
+	                    messageHelper.showMessage(incomingMessage);
 	                    break;
 	            }
 	        },
@@ -195,7 +181,7 @@
 	            var nickname = form.elements["signupUser"].value;
 	            var password = form.elements["signupPassword"].value;
 	            if (nickname) {
-	                clientsHelper.isClientNew(nickname).then(function (isClientNew) {
+	                clientsHelper.isClientExists(nickname).then(function (isClientNew) {
 	                    if (isClientNew) {
 	                        clientsHelper.addClient({ nickname: nickname, password: password }).then(function () {
 	                            _this2.connectUser(nickname);
@@ -235,14 +221,17 @@
 	        },
 	        connectUser: function connectUser(username) {
 	            this.setCurrentUser(username);
+	            clientsHelper.showClients();
 	            var msg = messageHelper.createMessage('join', username + ' joined to chat', 'admin', username);
 	            socket.send(JSON.stringify(msg));
 	            domHelper.unlock();
 	            historyHelper.showHistory();
+	            historyHelper.updateHistory(msg);
 	        },
 	        disconnectUser: function disconnectUser(username) {
 	            var user = username || this.getCurrentUser();
 	            var msg = messageHelper.createMessage('leave', user + ' disconnected', 'admin', user);
+	            historyHelper.updateHistory(msg);
 	            socket.send(JSON.stringify(msg));
 	            this.setCurrentUser('');
 	            domHelper.lock();
@@ -253,7 +242,10 @@
 	            reader.addEventListener("load", function () {
 	                var user = sessionStorage.getItem('currentUser');
 	                var msg = messageHelper.createMessage('avatar', reader.result, 'admin', user);
+	                historyHelper.updateHistory(msg);
 	                socket.send(JSON.stringify(msg));
+	                var msgAdmin = messageHelper.createMessage('message', 'User ' + user + ' changed avatar', 'admin', user);
+	                socket.send(JSON.stringify(msgAdmin));
 	            });
 	            if (file) {
 	                reader.readAsDataURL(file);
@@ -284,15 +276,16 @@
 	"use strict";
 	
 	module.exports = function (socket) {
-	    var input = document.getElementById("messageTxt");
-	    var sendBtn = document.getElementById("sendMessage");
-	    var signUpBtn = document.getElementById("signUpBtn");
-	    var logInBtn = document.getElementById("logInBtn");
-	    var logOutBtn = document.getElementById("logOutBtn");
-	    var userAvatar = document.getElementById("avatarImg");
-	    var tabs = document.getElementById("tab-area");
-	    var offlineImgSrc = 'images/offline.png';
-	    var defaultImgSrc = 'images/face.png';
+	    var input = document.getElementById("messageTxt"),
+	        sendBtn = document.getElementById("sendMessage"),
+	        signUpBtn = document.getElementById("signUpBtn"),
+	        logInBtn = document.getElementById("logInBtn"),
+	        logOutBtn = document.getElementById("logOutBtn"),
+	        userAvatar = document.getElementById("avatarImg"),
+	        msgsBlock = document.getElementById('messages'),
+	        chat = document.getElementById('nodejs-chat'),
+	        offlineImgSrc = 'images/offline.png',
+	        defaultImgSrc = 'images/face.png';
 	    return {
 	        createClient: function createClient(msg) {
 	            var currentUser = sessionStorage.getItem('currentUser');
@@ -316,6 +309,17 @@
 	                user.classList.add('currentUser');
 	            }
 	            document.getElementById('clients').appendChild(fragment);
+	        },
+	        updateClientStatus: function updateClientStatus(msg) {
+	            var clientsInfo = document.querySelectorAll('#clients .info');
+	            var statusText = msg.online ? 'online' : 'offline';
+	            [].forEach.call(clientsInfo, function (el) {
+	                if (el.querySelector('.user').innerHTML === msg.name) {
+	                    var status = el.querySelector('.status');
+	                    status.className = msg.online ? "status on" : "status off";
+	                    status.innerHTML = statusText;
+	                }
+	            });
 	        },
 	        addMessage: function addMessage(msg) {
 	            var fragment = document.createDocumentFragment();
@@ -355,18 +359,18 @@
 	            userAvatar.removeAttribute('disabled');
 	            input.removeAttribute('disabled');
 	            sendBtn.removeAttribute('disabled');
-	            tabs.style.display = 'none';
-	            logOutBtn.style.display = 'block';
+	            msgsBlock.removeAttribute('disabled');
+	            chat.classList.toggle('locked');
 	        },
 	        lock: function lock() {
 	            input.value = '';
 	            input.setAttribute('placeholder', 'Please Sign Up or Log In');
+	            chat.classList.toggle('locked');
 	            userAvatar.setAttribute('disabled', 'disabled');
 	            input.setAttribute('disabled', 'disabled');
 	            sendBtn.setAttribute('disabled', 'disabled');
-	            tabs.style.display = 'block';
-	            logOutBtn.style.display = 'none';
-	            document.getElementById('messages').innerHTML = '';
+	            msgsBlock.innerHTML = '';
+	            msgsBlock.setAttribute('disabled', 'disabled');
 	            document.getElementById('currentUser').innerHTML = '';
 	            document.getElementById('avatar').src = offlineImgSrc;
 	        }
@@ -387,12 +391,15 @@
 	    var requestHelper = __webpack_require__(/*! ./request */ 4)();
 	    return {
 	        getHistory: function getHistory() {
-	            //return JSON.parse(localStorage.getItem('messageHistory')) || [];
 	            return requestHelper.request('/messages', 'GET').then(function (data) {
 	                return JSON.parse(data);
 	            });
 	        },
 	        updateHistory: function updateHistory(msg) {
+	            var time = new Date(msg.date);
+	            var dateStr = time.toLocaleDateString('en-US');
+	            var timeStr = time.toLocaleTimeString();
+	            msg.date = dateStr + '  ' + timeStr;
 	            return requestHelper.request('/messages', 'POST', msg).then(function () {
 	                console.log('History POST message');
 	            });
@@ -492,7 +499,7 @@
 	                }
 	            });
 	        },
-	        isClientNew: function isClientNew(username) {
+	        isClientExists: function isClientExists(username) {
 	            return this.getClients().then(function (clients) {
 	                return !clients[username];
 	            });
@@ -504,8 +511,27 @@
 	        },
 	        connectClient: function connectClient(username) {
 	            var currentUser = sessionStorage.getItem('currentUser');
+	            var updateData = {
+	                online: true,
+	                name: username
+	            };
+	            this.updateClient(updateData);
 	            username && currentUser === username && this.getClients().then(function (clients) {
 	                document.getElementById('avatar').src = clients[username].avatar.replace(/ /ig, '+');
+	            });
+	        },
+	        disconnectClient: function disconnectClient(username) {
+	            this.updateClient({
+	                online: false,
+	                name: username
+	            });
+	        },
+	        updateClient: function updateClient(data) {
+	            var _this = this;
+	
+	            requestHelper.request('/clients', 'PUT', data).then(function () {
+	                _this.showClients();
+	                //domHelper.updateClientStatus(data);
 	            });
 	        },
 	        removeClient: function removeClient() {
@@ -513,27 +539,18 @@
 	            return requestHelper.request('/clients', 'DELETE', { username: username }).then(function () {});
 	        },
 	        setClientAvatar: function setClientAvatar(msg) {
-	            var _this = this;
-	
 	            var username = sessionStorage.getItem('currentUser');
 	            if (username === msg.username) {
 	                document.getElementById('avatar').src = msg.text;
 	            }
-	            var update = {
+	            this.updateClient({
 	                avatar: msg.text,
 	                name: msg.username
-	            };
-	            requestHelper.request('/clients', 'PUT', update).then(function () {
-	                console.log('PUT message');
-	                _this.showClients();
 	            });
 	        },
 	        addClient: function addClient(currentUser) {
-	            var _this2 = this;
-	
 	            return requestHelper.request('/clients', 'POST', currentUser).then(function () {
-	                console.log('POST message');
-	                _this2.showClients();
+	                // this.showClients();
 	            });
 	        }
 	    };
@@ -562,10 +579,11 @@
 	            var timeStr = time.toLocaleTimeString();
 	            msg.date = dateStr + '  ' + timeStr;
 	            var messageElem = domHelper.addMessage(msg);
-	            historyHelper.updateHistory(msg);
-	            var scrollArea = document.getElementById('messages');
-	            scrollArea.appendChild(messageElem);
-	            scrollArea.scrollTop = scrollArea.scrollHeight;
+	            if (!document.getElementById('nodejs-chat').classList.contains('locked')) {
+	                var scrollArea = document.getElementById('messages');
+	                scrollArea.appendChild(messageElem);
+	                scrollArea.scrollTop = scrollArea.scrollHeight;
+	            }
 	        },
 	        submitMessage: function submitMessage() {
 	            var value = input.value;
@@ -574,6 +592,7 @@
 	            }
 	            var user = sessionStorage.getItem('currentUser');
 	            var msg = this.createMessage('message', value, user);
+	            historyHelper.updateHistory(msg);
 	            socket.send(JSON.stringify(msg));
 	            input.value = '';
 	            this.submitBotMessage();
@@ -581,6 +600,7 @@
 	        submitBotMessage: function submitBotMessage() {
 	            var text = this.botMsgs[Math.floor(Math.random() * this.botMsgs.length)];
 	            var msg = this.createMessage('message', text, 'Lola');
+	            historyHelper.updateHistory(msg);
 	            var msg2 = this.createMessage('typing', 'Lola is typing ...', 'admin');
 	            setTimeout(function () {
 	                socket.send(JSON.stringify(msg2));

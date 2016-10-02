@@ -59,44 +59,28 @@ module.exports = function (socket) {
         },
         handleMessage  (event){
             var incomingMessage = JSON.parse(event.data);
-            var user = this.getCurrentUser();
             switch (incomingMessage.type) {
                 case 'typing':
                     var type = document.getElementById("type-status");
                     type.innerHTML = incomingMessage.text;
-                    window.setTimeout(()  => {
+                    window.setTimeout(() => {
                         isTyping = false;
                         type.innerHTML = '';
-                    }, 3000);
+                    }, 2500);
+                    break;
+                case 'join':
+                    messageHelper.showMessage(incomingMessage);
+                    clientsHelper.connectClient(incomingMessage.username);
+                    break;
+                case 'leave':
+                    messageHelper.showMessage(incomingMessage);
+                    clientsHelper.disconnectClient(incomingMessage.username);
                     break;
                 case 'avatar':
                     clientsHelper.setClientAvatar(incomingMessage);
-                    var msg = messageHelper.createMessage('message', `User ${user} changed avatar`, 'admin', user)
-                    socket.send(JSON.stringify(msg));
-                    break;
-                case 'leave':
-                    user && clientsHelper.isClientOnline(user).then((isClientOnline) => {
-                        if (isClientOnline) {
-                            messageHelper.showMessage(incomingMessage);
-                        }
-                    });
-                    clientsHelper.showClients();
-                    break;
-                case 'join':
-                    user && clientsHelper.isClientOnline(user).then((isClientOnline) => {
-                        if (isClientOnline) {
-                            messageHelper.showMessage(incomingMessage);
-                            clientsHelper.connectClient(incomingMessage.username);
-                        }
-                    });
-                    clientsHelper.showClients();
                     break;
                 default:
-                    user && clientsHelper.isClientOnline(user).then((isClientOnline) => {
-                        if (isClientOnline) {
-                            messageHelper.showMessage(incomingMessage);
-                        }
-                    });
+                    messageHelper.showMessage(incomingMessage);
                     break
             }
         },
@@ -105,7 +89,7 @@ module.exports = function (socket) {
             var nickname = form.elements["signupUser"].value;
             var password = form.elements["signupPassword"].value;
             if (nickname) {
-                clientsHelper.isClientNew(nickname).then((isClientNew) => {
+                clientsHelper.isClientExists(nickname).then((isClientNew) => {
                     if (isClientNew) {
                         clientsHelper.addClient({nickname, password}).then(()=> {
                             this.connectUser(nickname);
@@ -128,7 +112,6 @@ module.exports = function (socket) {
                         alert('Nickname or password is wrong')
                     }
                 })
-
             }
         },
         removeUser(){
@@ -142,14 +125,17 @@ module.exports = function (socket) {
         },
         connectUser (username) {
             this.setCurrentUser(username);
+            clientsHelper.showClients();
             var msg = messageHelper.createMessage('join', `${username} joined to chat`, 'admin', username)
             socket.send(JSON.stringify(msg));
             domHelper.unlock();
             historyHelper.showHistory();
+            historyHelper.updateHistory(msg);
         },
         disconnectUser (username) {
             var user = username || this.getCurrentUser();
             var msg = messageHelper.createMessage('leave', `${user} disconnected`, 'admin', user)
+            historyHelper.updateHistory(msg);
             socket.send(JSON.stringify(msg));
             this.setCurrentUser('');
             domHelper.lock();
@@ -160,7 +146,10 @@ module.exports = function (socket) {
             reader.addEventListener("load", function () {
                 var user = sessionStorage.getItem('currentUser');
                 var msg = messageHelper.createMessage('avatar', reader.result, 'admin', user);
+                historyHelper.updateHistory(msg);
                 socket.send(JSON.stringify(msg));
+                var msgAdmin = messageHelper.createMessage('message', `User ${user} changed avatar`, 'admin', user)
+                socket.send(JSON.stringify(msgAdmin));
             });
             if (file) {
                 reader.readAsDataURL(file)

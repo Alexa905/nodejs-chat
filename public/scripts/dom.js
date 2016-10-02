@@ -1,13 +1,14 @@
 module.exports = function (socket) {
-    var input = document.getElementById("messageTxt");
-    var sendBtn = document.getElementById("sendMessage");
-    var signUpBtn = document.getElementById("signUpBtn");
-    var logInBtn = document.getElementById("logInBtn");
-    var logOutBtn = document.getElementById("logOutBtn");
-    var userAvatar = document.getElementById("avatarImg");
-    var tabs = document.getElementById("tab-area");
-    const offlineImgSrc = 'images/offline.png';
-    const defaultImgSrc = 'images/face.png';
+    const input = document.getElementById("messageTxt"),
+        sendBtn = document.getElementById("sendMessage"),
+        signUpBtn = document.getElementById("signUpBtn"),
+        logInBtn = document.getElementById("logInBtn"),
+        logOutBtn = document.getElementById("logOutBtn"),
+        userAvatar = document.getElementById("avatarImg"),
+        msgsBlock = document.getElementById('messages'),
+        chat = document.getElementById('nodejs-chat'),
+        offlineImgSrc = 'images/offline.png',
+        defaultImgSrc = 'images/face.png';
     return {
         createClient (msg) {
             var currentUser = sessionStorage.getItem('currentUser');
@@ -23,14 +24,25 @@ module.exports = function (socket) {
             info.className = "info";
             user.className = "user";
             status.className = msg.online ? "status on" : "status off";
-            var imgSrc = msg.avatar ? msg.avatar.replace(/ /ig,'+') : defaultImgSrc;
-            img.setAttribute('src', imgSrc );
+            var imgSrc = msg.avatar ? msg.avatar.replace(/ /ig, '+') : defaultImgSrc;
+            img.setAttribute('src', imgSrc);
             img.setAttribute('width', '50');
             img.setAttribute('height', '50');
             if (msg.name === currentUser) {
                 user.classList.add('currentUser');
             }
             document.getElementById('clients').appendChild(fragment);
+        },
+        updateClientStatus(msg){
+            var clientsInfo = document.querySelectorAll('#clients .info');
+            var statusText = msg.online ? 'online' : 'offline';
+            [].forEach.call(clientsInfo, function (el) {
+                if (el.querySelector('.user').innerHTML === msg.name) {
+                    var status = el.querySelector('.status');
+                    status.className = msg.online ? "status on" : "status off";
+                    status.innerHTML = statusText;
+                }
+            });
         },
         addMessage (msg) {
             var fragment = document.createDocumentFragment();
@@ -39,7 +51,7 @@ module.exports = function (socket) {
             var messageText = messageElem.appendChild(document.createElement('div'));
             if (msg.type === 'image') {
                 var img = document.createElement('img');
-                var imgSrc = msg.text.replace(/ /ig,'+'); // fix base64 format after saving in MongoLab
+                var imgSrc = msg.text.replace(/ /ig, '+'); // fix base64 format after saving in MongoLab
                 img.setAttribute('src', imgSrc);
                 img.setAttribute('width', '50');
                 img.setAttribute('height', '50');
@@ -70,18 +82,18 @@ module.exports = function (socket) {
             userAvatar.removeAttribute('disabled');
             input.removeAttribute('disabled');
             sendBtn.removeAttribute('disabled');
-            tabs.style.display = 'none';
-            logOutBtn.style.display = 'block';
+            msgsBlock.removeAttribute('disabled');
+            chat.classList.toggle('locked');
         },
         lock   () {
             input.value = '';
             input.setAttribute('placeholder', 'Please Sign Up or Log In');
+            chat.classList.toggle('locked');
             userAvatar.setAttribute('disabled', 'disabled');
             input.setAttribute('disabled', 'disabled');
             sendBtn.setAttribute('disabled', 'disabled');
-            tabs.style.display = 'block';
-            logOutBtn.style.display = 'none';
-            document.getElementById('messages').innerHTML = '';
+            msgsBlock.innerHTML = '';
+            msgsBlock.setAttribute('disabled', 'disabled');
             document.getElementById('currentUser').innerHTML = '';
             document.getElementById('avatar').src = offlineImgSrc;
         }

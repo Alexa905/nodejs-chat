@@ -1,6 +1,6 @@
 module.exports = function () {
-    var domHelper = require('./dom')();
-    var requestHelper = require('./request')();
+    const domHelper = require('./dom')();
+    const requestHelper = require('./request')();
     return {
         getClients () {
             return requestHelper.request('/clients', 'GET').then((data) => {
@@ -15,12 +15,12 @@ module.exports = function () {
         showClients () {
             document.getElementById('clients').innerHTML = '';
             this.getClients().then(function (clients) {
-                for (var key in clients) {
+                for (let key in clients) {
                     domHelper.createClient(clients[key]);
                 }
             })
         },
-        isClientNew (username) {
+        isClientExists (username) {
             return this.getClients().then((clients) => {
                 return !clients[username];
             })
@@ -29,14 +29,29 @@ module.exports = function () {
             return this.getClients().then((clients) => {
                 return clients[username] && clients[username].password === password;
             })
-
         },
         connectClient(username){
             var currentUser = sessionStorage.getItem('currentUser');
+            var updateData = {
+                online: true,
+                name: username
+            };
+            this.updateClient(updateData);
             username && (currentUser === username) && this.getClients().then((clients) => {
-                document.getElementById('avatar').src =clients[username].avatar.replace(/ /ig,'+')
+                document.getElementById('avatar').src = clients[username].avatar.replace(/ /ig, '+')
             });
-
+        },
+        disconnectClient(username){
+            this.updateClient({
+                online: false,
+                name: username
+            })
+        },
+        updateClient(data){
+            requestHelper.request('/clients', 'PUT', data).then(() => {
+                this.showClients();
+                //domHelper.updateClientStatus(data);
+            });
         },
         removeClient(){
             var username = sessionStorage.getItem('currentUser');
@@ -45,22 +60,17 @@ module.exports = function () {
         },
         setClientAvatar(msg){
             var username = sessionStorage.getItem('currentUser');
-            if(username === msg.username){
+            if (username === msg.username) {
                 document.getElementById('avatar').src = msg.text;
             }
-            var update = {
+            this.updateClient({
                 avatar: msg.text,
                 name: msg.username
-            }
-            requestHelper.request('/clients', 'PUT', update).then(() => {
-                console.log('PUT message')
-                this.showClients();
             });
         },
         addClient(currentUser){
             return requestHelper.request('/clients', 'POST', currentUser).then(() => {
-                console.log('POST message')
-                this.showClients();
+               // this.showClients();
             });
         }
     }

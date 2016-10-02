@@ -12,10 +12,11 @@ module.exports = function (socket) {
             var timeStr = time.toLocaleTimeString();
             msg.date = `${dateStr}  ${timeStr}`;
             var messageElem = domHelper.addMessage(msg);
-            historyHelper.updateHistory(msg);
-            var scrollArea = document.getElementById('messages');
-            scrollArea.appendChild(messageElem);
-            scrollArea.scrollTop = scrollArea.scrollHeight;
+            if(!document.getElementById('nodejs-chat').classList.contains('locked')) {
+                var scrollArea = document.getElementById('messages');
+                scrollArea.appendChild(messageElem);
+                scrollArea.scrollTop = scrollArea.scrollHeight;
+            }
         },
         submitMessage () {
             var value = input.value;
@@ -24,6 +25,7 @@ module.exports = function (socket) {
             }
             var user = sessionStorage.getItem('currentUser');
             var msg = this.createMessage('message', value, user);
+            historyHelper.updateHistory(msg);
             socket.send(JSON.stringify(msg));
             input.value = '';
             this.submitBotMessage();
@@ -31,6 +33,7 @@ module.exports = function (socket) {
         submitBotMessage (){
             var text = this.botMsgs[Math.floor(Math.random() * this.botMsgs.length)];
             var msg = this.createMessage('message', text, 'Lola');
+            historyHelper.updateHistory(msg);
             var msg2 = this.createMessage('typing', 'Lola is typing ...', 'admin');
             setTimeout(() => {
                 socket.send(JSON.stringify(msg2));

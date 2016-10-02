@@ -3,12 +3,15 @@ module.exports = function () {
     var requestHelper = require('./request')();
     return {
         getHistory () {
-            //return JSON.parse(localStorage.getItem('messageHistory')) || [];
             return requestHelper.request('/messages', 'GET').then((data) => {
                 return JSON.parse(data);
             });
         },
         updateHistory (msg) {
+            var time = new Date(msg.date);
+            var dateStr = time.toLocaleDateString('en-US');
+            var timeStr = time.toLocaleTimeString();
+            msg.date = `${dateStr}  ${timeStr}`;
             return requestHelper.request('/messages', 'POST', msg).then(() => {
                 console.log('History POST message')
             });
