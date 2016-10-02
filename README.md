@@ -25,7 +25,7 @@ Then navigate to `http://localhost:3001`
  - User can transfer image and see preview in chat
  - Lola is just bot for fun
 
-Here are some ideas to improve the application:
+####Here are some ideas to improve the application:####
  - Show only who is online checkbox
  - Add private messaging
  - Add search

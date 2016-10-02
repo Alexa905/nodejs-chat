@@ -220,11 +220,11 @@
 	            }
 	        },
 	        connectUser: function connectUser(username) {
+	            historyHelper.showHistory();
 	            this.setCurrentUser(username);
 	            var msg = messageHelper.createMessage('join', username + ' joined to chat', 'admin', username);
 	            socket.send(JSON.stringify(msg));
 	            domHelper.unlock();
-	            historyHelper.showHistory();
 	            historyHelper.updateHistory(msg);
 	        },
 	        disconnectUser: function disconnectUser(username) {

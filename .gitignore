@@ -9,8 +9,6 @@ local/
 
 # Exclude other generated items
 test-output/
-.DS_Store
 .checkstyle
 .pmd
-.pmdruleset.xml
 
