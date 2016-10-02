@@ -5,6 +5,7 @@ var server = require('http').createServer(),
     port = process.env.PORT || 3001,
     clientId = 0,
     clientsOnline = {},
+    User = require('./models/User'),
     router = require('./router')();
 
 wss.broadcast = function broadcast(data) {
@@ -23,10 +24,10 @@ wss.on('connection', function connection(ws) {
         console.log('received: %s', message);
         var msg = JSON.parse(message);
         wss.broadcast(message);
-        if(msg.type === 'join'){
+        if (msg.type === 'join') {
             clientsOnline[thisId] = msg.username;
         }
-        if(msg.type === 'leave'){
+        if (msg.type === 'leave') {
             delete clientsOnline[thisId];
         }
     });
@@ -42,6 +43,9 @@ wss.on('connection', function connection(ws) {
                 username: clientsOnline[thisId]
             };
             wss.broadcast(JSON.stringify(msg));
+            User.findOneAndUpdate({name: clientsOnline[thisId]}, {$set: {online: false}}, {new: true}, (err, result)=> {
+                if (err) return err
+            });
             delete clientsOnline[thisId];
         }
     });

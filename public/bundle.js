@@ -221,7 +221,6 @@
 	        },
 	        connectUser: function connectUser(username) {
 	            this.setCurrentUser(username);
-	            clientsHelper.showClients();
 	            var msg = messageHelper.createMessage('join', username + ' joined to chat', 'admin', username);
 	            socket.send(JSON.stringify(msg));
 	            domHelper.unlock();
