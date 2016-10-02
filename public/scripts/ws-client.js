@@ -2,10 +2,9 @@ if (!window.WebSocket) {
     document.body.innerHTML = 'WebSocket is not supported in this browser.';
 }
 
-var socket = new WebSocket('wss://nodejswschat.herokuapp.com:5135');
+var socket = new WebSocket('wss://nodejswschat.herokuapp.com');
 var helper = require('./event-handler')(socket);
 var clientsHelper = require('./clients')();
-
 
 helper.init();
 
