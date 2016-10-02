@@ -257,6 +257,7 @@
 	            reader.addEventListener("load", function () {
 	                var user = sessionStorage.getItem('currentUser');
 	                var msg = messageHelper.createMessage('image', reader.result, user);
+	                historyHelper.updateHistory(msg);
 	                socket.send(JSON.stringify(msg));
 	            }, false);
 	            if (file) {
