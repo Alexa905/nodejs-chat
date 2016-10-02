@@ -53,7 +53,7 @@
 	    document.body.innerHTML = 'WebSocket is not supported in this browser.';
 	}
 	var host = process.env.NODE_ENV === 'production' ? 'nodejswschat.herokuapp.com' : 'localhost';
-	var socket = new WebSocket('ws://' + host + ':3001');
+	var socket = new WebSocket('ws://' + host + ':' + process.env.PORT);
 	var helper = __webpack_require__(/*! ./event-handler */ 1)(socket);
 	var clientsHelper = __webpack_require__(/*! ./clients */ 5)();
 	
