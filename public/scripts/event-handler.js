@@ -129,7 +129,9 @@ module.exports = function (socket) {
             var msg = messageHelper.createMessage('join', `${username} joined to chat`, 'admin', username)
             socket.send(JSON.stringify(msg));
             domHelper.unlock();
-            historyHelper.updateHistory(msg);
+            setTimeout(()=>{
+                historyHelper.updateHistory(msg);
+            }, 1000)
         },
         disconnectUser (username) {
             var user = username || this.getCurrentUser();
