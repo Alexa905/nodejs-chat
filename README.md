@@ -15,8 +15,8 @@ Then navigate to `http://localhost:3001`
 
 [DEMO](https://nodejswschat.herokuapp.com/)
 
-
-User is able to join the chat server after entering his name and password
+###Chat has the following functionality:###
+ - User is able to join the chat server after entering his name and password
  - User can leave chat anytime
  - User joining the room will see the past 20 messages (chat history)
  - User will see an 'is typing' message when someone is typing a message
