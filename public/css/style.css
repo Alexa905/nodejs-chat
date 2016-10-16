@@ -471,7 +471,7 @@ input.tab-link {
     border-bottom: 1px solid #97d1e7;
 }
 
-.tab input[type="button"], .tab input[type="submit"] {
+input[type="button"], .tab input[type="submit"] {
     line-height: 28px;
     background: #97d1e7;
     color: #fff;
@@ -485,6 +485,10 @@ input.tab-link {
     right: 5px;
     top: 5px;
     display: block;
+    border: none;
+    font-size: 13px;
+    padding: 0 5px;
+    border-radius: 2px;
 }
 .locked #logOutBtn{
     display: none;

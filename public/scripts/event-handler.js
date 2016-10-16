@@ -124,18 +124,18 @@ module.exports = function (socket) {
             }
         },
         connectUser (username) {
+            domHelper.unlock();
             historyHelper.showHistory();
             this.setCurrentUser(username);
-            var msg = messageHelper.createMessage('join', `${username} joined to chat`, 'admin', username)
+            var msg = messageHelper.createMessage('join', `${username} joined to chat`, 'admin', username);
             socket.send(JSON.stringify(msg));
-            domHelper.unlock();
             setTimeout(()=>{
                 historyHelper.updateHistory(msg);
             }, 1000)
         },
         disconnectUser (username) {
             var user = username || this.getCurrentUser();
-            var msg = messageHelper.createMessage('leave', `${user} disconnected`, 'admin', user)
+            var msg = messageHelper.createMessage('leave', `${user} disconnected`, 'admin', user);
             historyHelper.updateHistory(msg);
             socket.send(JSON.stringify(msg));
             this.setCurrentUser('');
@@ -148,7 +148,7 @@ module.exports = function (socket) {
                 var user = sessionStorage.getItem('currentUser');
                 var msg = messageHelper.createMessage('avatar', reader.result, 'admin', user);
                 socket.send(JSON.stringify(msg));
-                var msgAdmin = messageHelper.createMessage('message', `User ${user} changed avatar`, 'admin', user)
+                var msgAdmin = messageHelper.createMessage('message', `User ${user} changed avatar`, 'admin', user);
                 socket.send(JSON.stringify(msgAdmin));
                 historyHelper.updateHistory(msgAdmin);
             });
