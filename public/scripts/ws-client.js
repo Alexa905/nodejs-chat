@@ -1,11 +1,11 @@
 if (!window.WebSocket) {
     document.body.innerHTML = 'WebSocket is not supported in this browser.';
 }
-var host = document.location.host;
-var ws = host.indexOf('localhost') !== -1 ? 'ws' : 'wss';
-var socket = new WebSocket(ws + '://' + host);
-var helper = require('./event-handler')(socket);
-var clientsHelper = require('./clients')();
+const host = document.location.host,
+    ws = host.indexOf('localhost') !== -1 ? 'ws' : 'wss',
+    socket = new WebSocket(ws + '://' + host),
+    helper = require('./event-handler')(socket),
+    clientsHelper = require('./chat-clients');
 
 helper.init();
 

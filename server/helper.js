@@ -1,17 +1,14 @@
 module.exports = {
     transformResponse(data){
-        var allClients = {};
-        data.sort((a, b)=>(a.name.localeCompare(b.name))).forEach((user)=> {
-            allClients[user.name] = user
-        });
-        return allClients;
+        return data.sort((a, b)=>(a.name.localeCompare(b.name))).reduce((allClientsMap, user) => {
+            allClientsMap[user.name] = user;
+            return allClientsMap;
+        }, {})
     },
-
     sortObject(obj){
-        var sorted = {};
-        Object.keys(obj).sort((a, b)=>(a.localeCompare(b))).forEach((key)=> {
-            sorted[key] = obj[key]
-        });
-        return Object.assign({}, sorted);
+        return Object.keys(obj).sort((a, b)=>(a.localeCompare(b))).reduce((map, key) => {
+            map[key] = obj[key];
+            return map;
+        }, {})
     }
 };

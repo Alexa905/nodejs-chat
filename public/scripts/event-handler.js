@@ -1,17 +1,19 @@
+const domHelper = require('./dom-helper'),
+    historyHelper = require('./history-storage'),
+    clientsHelper = require('./chat-clients'),
+    input = document.getElementById("messageTxt"),
+    sendBtn = document.getElementById("sendMessage"),
+    signUpBtn = document.getElementById("signUpBtn"),
+    logInBtn = document.getElementById("logInBtn"),
+    logOutBtn = document.getElementById("logOutBtn"),
+    googleBtn = document.getElementById("google-signin"),
+    imgElement = document.getElementById("imgElem"),
+    userAvatar = document.getElementById("avatarImg"),
+    removeUserBtn = document.getElementById("removeUser");
+
 module.exports = function (socket) {
-    var domHelper = require('./dom')();
-    var historyHelper = require('./history')();
-    var clientsHelper = require('./clients')();
-    var messageHelper = require('./message')(socket);
-    var input = document.getElementById("messageTxt");
-    var sendBtn = document.getElementById("sendMessage");
-    var signUpBtn = document.getElementById("signUpBtn");
-    var logInBtn = document.getElementById("logInBtn");
-    var logOutBtn = document.getElementById("logOutBtn");
-    var imgElement = document.getElementById("imgElem");
-    var userAvatar = document.getElementById("avatarImg");
-    var removeUserBtn = document.getElementById("removeUser");
-    var isTyping = false;
+    const messageHelper = require('./message-handler')(socket);
+    let isTyping = false;
     return {
         getCurrentUser () {
             return sessionStorage.getItem('currentUser');
@@ -21,6 +23,21 @@ module.exports = function (socket) {
             sessionStorage.setItem('currentUser', username);
         },
         init () {
+            function onGoogleSignIn(googleUser) {
+                var profile = googleUser.getBasicProfile();
+                console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+                console.log('Name: ' + profile.getName());
+                console.log('Image URL: ' + profile.getImageUrl());
+                console.log('Email: ' + profile.getEmail());
+                var id_token = googleUser.getAuthResponse().id_token;
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/tokensignin');
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onload = function() {
+                    console.log('Signed in as: ' + xhr.responseText);
+                };
+                xhr.send('idtoken=' + id_token);
+            }
             imgElement.addEventListener("change", this.handleImages, false);
             userAvatar.addEventListener("change", this.changeAvatar, false);
             logInBtn.addEventListener('click', () => {
@@ -91,7 +108,7 @@ module.exports = function (socket) {
             if (nickname) {
                 clientsHelper.isClientExists(nickname).then((isClientNew) => {
                     if (isClientNew) {
-                        clientsHelper.addClient({nickname, password}).then(()=> {
+                        clientsHelper.createClient({nickname, password}).then(()=> {
                             this.connectUser(nickname);
                         });
                     } else {
@@ -129,7 +146,7 @@ module.exports = function (socket) {
             this.setCurrentUser(username);
             var msg = messageHelper.createMessage('join', `${username} joined to chat`, 'admin', username);
             socket.send(JSON.stringify(msg));
-            setTimeout(()=>{
+            setTimeout(()=> {
                 historyHelper.updateHistory(msg);
             }, 1000)
         },
@@ -140,6 +157,11 @@ module.exports = function (socket) {
             socket.send(JSON.stringify(msg));
             this.setCurrentUser('');
             domHelper.lock();
+            var auth2 = gapi.auth2.getAuthInstance();
+            auth2.signOut().then(function () {
+                console.log('User signed out.');
+            });
+
         },
         changeAvatar (){
             var file = this.files && this.files[0];

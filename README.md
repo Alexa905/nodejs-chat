@@ -1,4 +1,9 @@
-**Node.js** chat application with pure **webSockets** on client side, **es6** (transpiled using **babel** and **webpack**) and storing data in **MongoDB**
+**Node.js** chat application:
+pure **webSockets** on client side, 
+**pure JS**,
+**es6** (transpiled using **babel** and **webpack**) 
+storing data in **MongoDB**,
+OAuth2.0
 
 ##Run Locally##
 
@@ -16,7 +21,7 @@ Then navigate to `http://localhost:3001`
 [DEMO](https://nodejswschat.herokuapp.com/)
 
 ###Chat has the following functionality:###
- - User is able to join the chat server after entering his name and password
+ - User is able to join the chat server after entering his name and password or with google account
  - User can leave chat anytime
  - User joining the room will see the past 20 messages (chat history)
  - User will see an 'is typing' message when someone is typing a message

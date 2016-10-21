@@ -524,6 +524,10 @@ input[type="button"], .tab input[type="submit"] {
 .tab-area {
     width: 256px;
     display: none;
+    border-radius: 3px;
+    box-shadow: #9cd0e3 1px 8px 15px;
+    background: #ffffff;
+    padding-bottom: 20px;
 }
 
 .tabs-checked input:nth-of-type(2):not(:checked) ~ .tab:nth-of-type(1),
@@ -537,9 +541,6 @@ input[type="button"], .tab input[type="submit"] {
     background: #ffffff;
     padding: 10px 20px;
     display: none;
-    height: 170px;
-    border-radius: 3px;
-    box-shadow: #9cd0e3 1px 8px 15px;
 }
 
 h3 {
@@ -611,5 +612,9 @@ section {
 }
 .close:hover {
     background: #00d9ff;
+}
+#google-signin{
+    margin: 0 auto;
+    width: 190px;
 }
 

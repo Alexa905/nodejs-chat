@@ -52,11 +52,11 @@
 	if (!window.WebSocket) {
 	    document.body.innerHTML = 'WebSocket is not supported in this browser.';
 	}
-	var host = document.location.host;
-	var ws = host.indexOf('localhost') !== -1 ? 'ws' : 'wss';
-	var socket = new WebSocket(ws + '://' + host);
-	var helper = __webpack_require__(/*! ./event-handler */ 1)(socket);
-	var clientsHelper = __webpack_require__(/*! ./clients */ 5)();
+	var host = document.location.host,
+	    ws = host.indexOf('localhost') !== -1 ? 'ws' : 'wss',
+	    socket = new WebSocket(ws + '://' + host),
+	    helper = __webpack_require__(/*! ./event-handler */ 1)(socket),
+	    clientsHelper = __webpack_require__(/*! ./chat-clients */ 5);
 	
 	helper.init();
 	
@@ -85,19 +85,21 @@
 
 	'use strict';
 	
+	var domHelper = __webpack_require__(/*! ./dom-helper */ 2),
+	    historyHelper = __webpack_require__(/*! ./history-storage */ 3),
+	    clientsHelper = __webpack_require__(/*! ./chat-clients */ 5),
+	    input = document.getElementById("messageTxt"),
+	    sendBtn = document.getElementById("sendMessage"),
+	    signUpBtn = document.getElementById("signUpBtn"),
+	    logInBtn = document.getElementById("logInBtn"),
+	    logOutBtn = document.getElementById("logOutBtn"),
+	    googleBtn = document.getElementById("google-signin"),
+	    imgElement = document.getElementById("imgElem"),
+	    userAvatar = document.getElementById("avatarImg"),
+	    removeUserBtn = document.getElementById("removeUser");
+	
 	module.exports = function (socket) {
-	    var domHelper = __webpack_require__(/*! ./dom */ 2)();
-	    var historyHelper = __webpack_require__(/*! ./history */ 3)();
-	    var clientsHelper = __webpack_require__(/*! ./clients */ 5)();
-	    var messageHelper = __webpack_require__(/*! ./message */ 6)(socket);
-	    var input = document.getElementById("messageTxt");
-	    var sendBtn = document.getElementById("sendMessage");
-	    var signUpBtn = document.getElementById("signUpBtn");
-	    var logInBtn = document.getElementById("logInBtn");
-	    var logOutBtn = document.getElementById("logOutBtn");
-	    var imgElement = document.getElementById("imgElem");
-	    var userAvatar = document.getElementById("avatarImg");
-	    var removeUserBtn = document.getElementById("removeUser");
+	    var messageHelper = __webpack_require__(/*! ./message-handler */ 6)(socket);
 	    var isTyping = false;
 	    return {
 	        getCurrentUser: function getCurrentUser() {
@@ -112,6 +114,21 @@
 	        init: function init() {
 	            var _this = this;
 	
+	            function onGoogleSignIn(googleUser) {
+	                var profile = googleUser.getBasicProfile();
+	                console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+	                console.log('Name: ' + profile.getName());
+	                console.log('Image URL: ' + profile.getImageUrl());
+	                console.log('Email: ' + profile.getEmail());
+	                var id_token = googleUser.getAuthResponse().id_token;
+	                var xhr = new XMLHttpRequest();
+	                xhr.open('POST', '/tokensignin');
+	                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+	                xhr.onload = function () {
+	                    console.log('Signed in as: ' + xhr.responseText);
+	                };
+	                xhr.send('idtoken=' + id_token);
+	            }
 	            imgElement.addEventListener("change", this.handleImages, false);
 	            userAvatar.addEventListener("change", this.changeAvatar, false);
 	            logInBtn.addEventListener('click', function () {
@@ -183,7 +200,7 @@
 	            if (nickname) {
 	                clientsHelper.isClientExists(nickname).then(function (isClientNew) {
 	                    if (isClientNew) {
-	                        clientsHelper.addClient({ nickname: nickname, password: password }).then(function () {
+	                        clientsHelper.createClient({ nickname: nickname, password: password }).then(function () {
 	                            _this2.connectUser(nickname);
 	                        });
 	                    } else {
@@ -236,6 +253,10 @@
 	            socket.send(JSON.stringify(msg));
 	            this.setCurrentUser('');
 	            domHelper.lock();
+	            var auth2 = gapi.auth2.getAuthInstance();
+	            auth2.signOut().then(function () {
+	                console.log('User signed out.');
+	            });
 	        },
 	        changeAvatar: function changeAvatar() {
 	            var file = this.files && this.files[0];
@@ -270,307 +291,312 @@
 
 /***/ },
 /* 2 */
-/*!*******************************!*\
-  !*** ./public/scripts/dom.js ***!
-  \*******************************/
+/*!**************************************!*\
+  !*** ./public/scripts/dom-helper.js ***!
+  \**************************************/
 /***/ function(module, exports) {
 
 	"use strict";
 	
-	module.exports = function (socket) {
-	    var input = document.getElementById("messageTxt"),
-	        sendBtn = document.getElementById("sendMessage"),
-	        signUpBtn = document.getElementById("signUpBtn"),
-	        logInBtn = document.getElementById("logInBtn"),
-	        logOutBtn = document.getElementById("logOutBtn"),
-	        userAvatar = document.getElementById("avatarImg"),
-	        msgsBlock = document.getElementById('messages'),
-	        chat = document.getElementById('nodejs-chat'),
-	        offlineImgSrc = 'images/offline.png',
-	        defaultImgSrc = 'images/face.png';
-	    return {
-	        createClient: function createClient(msg) {
-	            var currentUser = sessionStorage.getItem('currentUser');
-	            var fragment = document.createDocumentFragment();
-	            var messageElem = fragment.appendChild(document.createElement('li'));
-	            var img = messageElem.appendChild(document.createElement('img'));
-	            var info = messageElem.appendChild(document.createElement('div'));
-	            var user = info.appendChild(document.createElement('div'));
-	            var status = info.appendChild(document.createElement('div'));
-	            var statusText = msg.online ? 'online' : 'offline';
-	            status.appendChild(document.createTextNode(statusText));
-	            user.appendChild(document.createTextNode(msg.name));
-	            info.className = "info";
-	            user.className = "user";
-	            status.className = msg.online ? "status on" : "status off";
-	            var imgSrc = msg.avatar ? msg.avatar.replace(/ /ig, '+') : defaultImgSrc;
+	var input = document.getElementById("messageTxt"),
+	    sendBtn = document.getElementById("sendMessage"),
+	    signUpBtn = document.getElementById("signUpBtn"),
+	    logInBtn = document.getElementById("logInBtn"),
+	    logOutBtn = document.getElementById("logOutBtn"),
+	    userAvatar = document.getElementById("avatarImg"),
+	    msgsBlock = document.getElementById('messages'),
+	    chat = document.getElementById('nodejs-chat'),
+	    offlineImgSrc = 'images/offline.png',
+	    defaultImgSrc = 'images/face.png';
+	
+	module.exports = {
+	    createClient: function createClient(msg) {
+	        var currentUser = sessionStorage.getItem('currentUser');
+	        var fragment = document.createDocumentFragment();
+	        var messageElem = fragment.appendChild(document.createElement('li'));
+	        var img = messageElem.appendChild(document.createElement('img'));
+	        img.setAttribute('title', msg.location ? msg.location : '');
+	        var info = messageElem.appendChild(document.createElement('div'));
+	        var user = info.appendChild(document.createElement('div'));
+	        var status = info.appendChild(document.createElement('div'));
+	        var statusText = msg.online ? 'online' : 'offline';
+	        status.appendChild(document.createTextNode(statusText));
+	        user.appendChild(document.createTextNode(msg.name));
+	        info.className = "info";
+	        user.className = "user";
+	        status.className = msg.online ? "status on" : "status off";
+	        var imgSrc = msg.avatar ? msg.avatar.replace(/ /ig, '+') : defaultImgSrc;
+	        img.setAttribute('src', imgSrc);
+	        img.setAttribute('width', '50');
+	        img.setAttribute('height', '50');
+	        if (msg.name === currentUser) {
+	            user.classList.add('currentUser');
+	        }
+	        document.getElementById('clients').appendChild(fragment);
+	    },
+	    updateClientStatus: function updateClientStatus(msg) {
+	        var clientsInfo = document.querySelectorAll('#clients .info');
+	        var statusText = msg.online ? 'online' : 'offline';
+	        [].forEach.call(clientsInfo, function (el) {
+	            if (el.querySelector('.user').innerHTML === msg.name) {
+	                var status = el.querySelector('.status');
+	                status.className = msg.online ? "status on" : "status off";
+	                status.innerHTML = statusText;
+	            }
+	        });
+	    },
+	    addMessage: function addMessage(msg) {
+	        var fragment = document.createDocumentFragment();
+	        var messageElem = fragment.appendChild(document.createElement('li'));
+	        var messageInfo = messageElem.appendChild(document.createElement('div'));
+	        var messageText = messageElem.appendChild(document.createElement('div'));
+	        if (msg.type === 'image') {
+	            var img = document.createElement('img');
+	            var imgSrc = msg.text.replace(/ /ig, '+'); // fix base64 format after saving in MongoLab
 	            img.setAttribute('src', imgSrc);
 	            img.setAttribute('width', '50');
 	            img.setAttribute('height', '50');
-	            if (msg.name === currentUser) {
-	                user.classList.add('currentUser');
-	            }
-	            document.getElementById('clients').appendChild(fragment);
-	        },
-	        updateClientStatus: function updateClientStatus(msg) {
-	            var clientsInfo = document.querySelectorAll('#clients .info');
-	            var statusText = msg.online ? 'online' : 'offline';
-	            [].forEach.call(clientsInfo, function (el) {
-	                if (el.querySelector('.user').innerHTML === msg.name) {
-	                    var status = el.querySelector('.status');
-	                    status.className = msg.online ? "status on" : "status off";
-	                    status.innerHTML = statusText;
-	                }
-	            });
-	        },
-	        addMessage: function addMessage(msg) {
-	            var fragment = document.createDocumentFragment();
-	            var messageElem = fragment.appendChild(document.createElement('li'));
-	            var messageInfo = messageElem.appendChild(document.createElement('div'));
-	            var messageText = messageElem.appendChild(document.createElement('div'));
-	            if (msg.type === 'image') {
-	                var img = document.createElement('img');
-	                var imgSrc = msg.text.replace(/ /ig, '+'); // fix base64 format after saving in MongoLab
-	                img.setAttribute('src', imgSrc);
-	                img.setAttribute('width', '50');
-	                img.setAttribute('height', '50');
-	                messageText.appendChild(img);
-	            } else {
-	                messageText.appendChild(document.createTextNode(msg.text));
-	            }
-	            var messageInfoName = messageInfo.appendChild(document.createElement('span'));
-	            var messageInfoTime = messageInfo.appendChild(document.createElement('span'));
-	            messageElem.className = "i";
-	            messageInfo.className = "head";
-	            messageText.className = "message";
-	            messageInfoTime.className = "time";
-	            messageInfoName.className = "name";
-	
-	            messageInfoTime.appendChild(document.createTextNode(msg.date));
-	            messageInfoName.appendChild(document.createTextNode(msg.author));
-	            if (msg.author === 'admin') {
-	                messageElem.classList.add('admin');
-	            }
-	            if (sessionStorage.getItem('currentUser') === msg.author) {
-	                messageElem.classList.add('currentUser');
-	            }
-	            return fragment;
-	        },
-	        unlock: function unlock() {
-	            input.setAttribute('placeholder', 'Type the message here');
-	            userAvatar.removeAttribute('disabled');
-	            input.removeAttribute('disabled');
-	            sendBtn.removeAttribute('disabled');
-	            msgsBlock.removeAttribute('disabled');
-	            chat.classList.toggle('locked');
-	        },
-	        lock: function lock() {
-	            input.value = '';
-	            input.setAttribute('placeholder', 'Please Sign Up or Log In');
-	            chat.classList.toggle('locked');
-	            userAvatar.setAttribute('disabled', 'disabled');
-	            input.setAttribute('disabled', 'disabled');
-	            sendBtn.setAttribute('disabled', 'disabled');
-	            msgsBlock.innerHTML = '';
-	            msgsBlock.setAttribute('disabled', 'disabled');
-	            document.getElementById('currentUser').innerHTML = '';
-	            document.getElementById('avatar').src = offlineImgSrc;
+	            messageText.appendChild(img);
+	        } else {
+	            messageText.appendChild(document.createTextNode(msg.text));
 	        }
-	    };
+	        var messageInfoName = messageInfo.appendChild(document.createElement('span'));
+	        var messageInfoTime = messageInfo.appendChild(document.createElement('span'));
+	        messageElem.className = "i";
+	        messageInfo.className = "head";
+	        messageText.className = "message";
+	        messageInfoTime.className = "time";
+	        messageInfoName.className = "name";
+	
+	        messageInfoTime.appendChild(document.createTextNode(msg.date));
+	        messageInfoName.appendChild(document.createTextNode(msg.author));
+	        if (msg.author === 'admin') {
+	            messageElem.classList.add('admin');
+	        }
+	        if (sessionStorage.getItem('currentUser') === msg.author) {
+	            messageElem.classList.add('currentUser');
+	        }
+	        return fragment;
+	    },
+	    unlock: function unlock() {
+	        input.setAttribute('placeholder', 'Type the message here');
+	        userAvatar.removeAttribute('disabled');
+	        input.removeAttribute('disabled');
+	        sendBtn.removeAttribute('disabled');
+	        msgsBlock.removeAttribute('disabled');
+	        chat.classList.toggle('locked');
+	    },
+	    lock: function lock() {
+	        input.value = '';
+	        input.setAttribute('placeholder', 'Please Sign Up or Log In');
+	        chat.classList.toggle('locked');
+	        userAvatar.setAttribute('disabled', 'disabled');
+	        input.setAttribute('disabled', 'disabled');
+	        sendBtn.setAttribute('disabled', 'disabled');
+	        msgsBlock.innerHTML = '';
+	        msgsBlock.setAttribute('disabled', 'disabled');
+	        document.getElementById('currentUser').innerHTML = '';
+	        document.getElementById('avatar').src = offlineImgSrc;
+	    }
 	};
 
 /***/ },
 /* 3 */
-/*!***********************************!*\
-  !*** ./public/scripts/history.js ***!
-  \***********************************/
+/*!*******************************************!*\
+  !*** ./public/scripts/history-storage.js ***!
+  \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	module.exports = function () {
-	    var domHelper = __webpack_require__(/*! ./dom */ 2)();
-	    var requestHelper = __webpack_require__(/*! ./request */ 4)();
-	    return {
-	        getHistory: function getHistory() {
-	            return requestHelper.request('/messages', 'GET').then(function (data) {
-	                return JSON.parse(data);
-	            });
-	        },
-	        updateHistory: function updateHistory(msg) {
-	            var time = new Date(msg.date);
-	            var dateStr = time.toLocaleDateString('en-US');
-	            var timeStr = time.toLocaleTimeString();
-	            msg.date = dateStr + '  ' + timeStr;
-	            return requestHelper.request('/messages', 'POST', msg).then(function () {
-	                console.log('History POST message');
-	            });
-	        },
-	        showHistory: function showHistory() {
-	            var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 20;
+	var domHelper = __webpack_require__(/*! ./dom-helper */ 2),
+	    requestHelper = __webpack_require__(/*! ./http-request */ 4);
 	
-	            this.getHistory().then(function (messages) {
-	                var msgBlock = document.getElementById('messages');
-	                msgBlock.style.display = 'block';
-	                for (var i = messages.length; i >= messages.length - length; i--) {
-	                    var msg = messages[i];
-	                    if (msg) {
-	                        var messageElem = domHelper.addMessage(msg);
-	                        msgBlock.insertBefore(messageElem, msgBlock.firstChild);
-	                    }
+	module.exports = {
+	    getHistory: function getHistory() {
+	        return requestHelper.request('/messages', 'GET').then(function (data) {
+	            return JSON.parse(data);
+	        });
+	    },
+	    updateHistory: function updateHistory(msg) {
+	        var time = new Date(msg.date);
+	        var dateStr = time.toLocaleDateString('en-US');
+	        var timeStr = time.toLocaleTimeString();
+	        msg.date = dateStr + '  ' + timeStr;
+	        return requestHelper.request('/messages', 'POST', msg).then(function () {
+	            console.log('History POST message');
+	        });
+	    },
+	    showHistory: function showHistory() {
+	        var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 20;
+	
+	        this.getHistory().then(function (messages) {
+	            var msgBlock = document.getElementById('messages');
+	            msgBlock.style.display = 'block';
+	            for (var i = messages.length; i >= messages.length - length; i--) {
+	                var msg = messages[i];
+	                if (msg) {
+	                    var messageElem = domHelper.addMessage(msg);
+	                    msgBlock.insertBefore(messageElem, msgBlock.firstChild);
 	                }
-	                var scrollArea = document.getElementById('messages');
-	                scrollArea.scrollTop = scrollArea.scrollHeight;
-	            });
-	        }
-	    };
+	            }
+	            var scrollArea = document.getElementById('messages');
+	            scrollArea.scrollTop = scrollArea.scrollHeight;
+	        });
+	    }
 	};
 
 /***/ },
 /* 4 */
-/*!***********************************!*\
-  !*** ./public/scripts/request.js ***!
-  \***********************************/
+/*!****************************************!*\
+  !*** ./public/scripts/http-request.js ***!
+  \****************************************/
 /***/ function(module, exports) {
 
 	'use strict';
 	
-	module.exports = function () {
-	    return {
-	        request: function request(url, method, data) {
-	            var _this = this;
+	module.exports = {
+	    request: function request(url, method, data, type) {
+	        var _this = this;
 	
-	            return new Promise(function (resolve, reject) {
-	                var req = new XMLHttpRequest();
-	                req.open(method, url);
-	                req.onload = function () {
-	                    return req.status === 200 ? resolve(req.response) : reject(Error(req.statusText));
-	                };
-	                req.onerror = function (e) {
-	                    return reject(Error('Network Error: ' + e));
-	                };
-	                if (method = 'POST') {
-	                    req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-	                }
-	                req.send(_this.param(data));
-	            });
-	        },
-	        param: function param(object) {
-	            var encodedString = '';
-	            for (var prop in object) {
-	                if (object.hasOwnProperty(prop)) {
-	                    if (encodedString.length > 0) {
-	                        encodedString += '&';
-	                    }
-	                    encodedString += encodeURI(prop + '=' + object[prop]);
-	                }
+	        return new Promise(function (resolve, reject) {
+	            var req = new XMLHttpRequest();
+	            req.open(method, url);
+	            req.onload = function () {
+	                return req.status === 200 ? resolve(req.response) : reject(Error(req.statusText));
+	            };
+	            req.onerror = function (e) {
+	                return reject(Error('Network Error: ' + e));
+	            };
+	            if (method = 'POST') {
+	                req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 	            }
-	            return encodedString;
+	            if (type) {
+	                req.setRequestHeader('Content-Type', 'application/json');
+	            }
+	            req.send(_this.setParams(data));
+	        });
+	    },
+	    setParams: function setParams(object) {
+	        var encodedString = '';
+	        for (var prop in object) {
+	            if (object.hasOwnProperty(prop)) {
+	                if (encodedString.length > 0) {
+	                    encodedString += '&';
+	                }
+	                encodedString += encodeURI(prop + '=' + object[prop]);
+	            }
 	        }
-	    };
+	        return encodedString;
+	    }
 	};
 
 /***/ },
 /* 5 */
-/*!***********************************!*\
-  !*** ./public/scripts/clients.js ***!
-  \***********************************/
+/*!****************************************!*\
+  !*** ./public/scripts/chat-clients.js ***!
+  \****************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	module.exports = function () {
-	    var domHelper = __webpack_require__(/*! ./dom */ 2)();
-	    var requestHelper = __webpack_require__(/*! ./request */ 4)();
-	    return {
-	        getClients: function getClients() {
-	            return requestHelper.request('/clients', 'GET').then(function (data) {
-	                return JSON.parse(data);
-	            });
-	        },
-	        isClientOnline: function isClientOnline(username) {
-	            return this.getClients().then(function (clients) {
-	                return clients[username].online;
-	            });
-	        },
-	        showClients: function showClients() {
-	            document.getElementById('clients').innerHTML = '';
-	            this.getClients().then(function (clients) {
-	                for (var key in clients) {
-	                    domHelper.createClient(clients[key]);
-	                }
-	            });
-	        },
-	        isClientExists: function isClientExists(username) {
-	            return this.getClients().then(function (clients) {
-	                return !clients[username];
-	            });
-	        },
-	        isClientAuthorized: function isClientAuthorized(username, password) {
-	            return this.getClients().then(function (clients) {
-	                return clients[username] && clients[username].password === password;
-	            });
-	        },
-	        connectClient: function connectClient(username) {
-	            var currentUser = sessionStorage.getItem('currentUser');
-	            var updateData = {
-	                online: true,
-	                name: username
-	            };
-	            this.updateClient(updateData);
-	            username && currentUser === username && this.getClients().then(function (clients) {
-	                document.getElementById('avatar').src = clients[username].avatar.replace(/ /ig, '+');
-	            });
-	        },
-	        disconnectClient: function disconnectClient(username) {
-	            this.updateClient({
-	                online: false,
-	                name: username
-	            });
-	        },
-	        updateClient: function updateClient(data) {
-	            var _this = this;
-	
-	            requestHelper.request('/clients', 'PUT', data).then(function () {
-	                _this.showClients();
-	                //domHelper.updateClientStatus(data);
-	            });
-	        },
-	        removeClient: function removeClient() {
-	            var username = sessionStorage.getItem('currentUser');
-	            return requestHelper.request('/clients', 'DELETE', { username: username }).then(function () {});
-	        },
-	        setClientAvatar: function setClientAvatar(msg) {
-	            var username = sessionStorage.getItem('currentUser');
-	            if (username === msg.username) {
-	                document.getElementById('avatar').src = msg.text;
+	var domHelper = __webpack_require__(/*! ./dom-helper */ 2),
+	    requestHelper = __webpack_require__(/*! ./http-request */ 4);
+	module.exports = {
+	    getClients: function getClients() {
+	        return requestHelper.request('/clients', 'GET').then(function (data) {
+	            return JSON.parse(data);
+	        });
+	    },
+	    isClientOnline: function isClientOnline(username) {
+	        return this.getClients().then(function (clients) {
+	            return clients[username].online;
+	        });
+	    },
+	    showClients: function showClients() {
+	        document.getElementById('clients').innerHTML = '';
+	        this.getClients().then(function (clients) {
+	            for (var key in clients) {
+	                domHelper.createClient(clients[key]);
 	            }
-	            this.updateClient({
-	                avatar: msg.text,
-	                name: msg.username
-	            });
-	        },
-	        addClient: function addClient(currentUser) {
-	            return requestHelper.request('/clients', 'POST', currentUser).then(function () {
-	                // this.showClients();
-	            });
+	        });
+	    },
+	    isClientExists: function isClientExists(username) {
+	        return this.getClients().then(function (clients) {
+	            return !clients[username];
+	        });
+	    },
+	    isClientAuthorized: function isClientAuthorized(username, password) {
+	        return this.getClients().then(function (clients) {
+	            return clients[username] && clients[username].password === password;
+	        });
+	    },
+	    connectClient: function connectClient(username) {
+	        var currentUser = sessionStorage.getItem('currentUser');
+	        var updateData = {
+	            online: true,
+	            name: username
+	        };
+	        this.updateClient(updateData);
+	        username && currentUser === username && this.getClients().then(function (clients) {
+	            document.getElementById('avatar').src = clients[username].avatar.replace(/ /ig, '+');
+	        });
+	    },
+	    disconnectClient: function disconnectClient(username) {
+	        this.updateClient({
+	            online: false,
+	            name: username
+	        });
+	    },
+	    updateClient: function updateClient(data) {
+	        var _this = this;
+	
+	        requestHelper.request('/clients', 'PUT', data).then(function () {
+	            _this.showClients();
+	            //domHelper.updateClientStatus(data);
+	        });
+	    },
+	    removeClient: function removeClient() {
+	        var username = sessionStorage.getItem('currentUser');
+	        return requestHelper.request('/clients', 'DELETE', { username: username }).then(function () {});
+	    },
+	    setClientAvatar: function setClientAvatar(msg) {
+	        var username = sessionStorage.getItem('currentUser');
+	        if (username === msg.username) {
+	            document.getElementById('avatar').src = msg.text;
 	        }
-	    };
+	        this.updateClient({
+	            avatar: msg.text,
+	            name: msg.username
+	        });
+	    },
+	    createClient: function createClient(currentUser) {
+	        return requestHelper.request('http://ip-api.com/json', 'GET').then(function (data) {
+	            if (data) {
+	                data = JSON.parse(data);
+	                currentUser.location = data.country;
+	            }
+	            return requestHelper.request('/clients', 'POST', currentUser).then(function () {
+	                alert('User ' + currentUser.nickname + ' has been added to chat');
+	            });
+	        });
+	    }
 	};
 
 /***/ },
 /* 6 */
-/*!***********************************!*\
-  !*** ./public/scripts/message.js ***!
-  \***********************************/
+/*!*******************************************!*\
+  !*** ./public/scripts/message-handler.js ***!
+  \*******************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
+	var domHelper = __webpack_require__(/*! ./dom-helper */ 2),
+	    historyHelper = __webpack_require__(/*! ./history-storage */ 3),
+	    input = document.getElementById("messageTxt");
+	
 	module.exports = function (socket) {
-	    var domHelper = __webpack_require__(/*! ./dom */ 2)();
-	    var historyHelper = __webpack_require__(/*! ./history */ 3)();
-	    var input = document.getElementById("messageTxt");
 	    return {
 	        createMessage: function createMessage(type, text, author, username) {
 	            return { type: type, text: text, author: author, date: Date.now(), username: username };

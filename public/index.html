@@ -3,6 +3,7 @@
 <head>
     <title>WebSocket chat</title>
     <meta charset="utf-8"/>
+    <meta name="google-signin-client_id" content="464160879237-kk1t3ap3fod06dh11i5qdmb9t844r1b6.apps.googleusercontent.com">
 </head>
 <body>
 <div id="nodejs-chat" class="locked">
@@ -32,6 +33,8 @@
                     <input type="button" id="signUpBtn" value="Join">
                 </form>
             </article>
+<!--            <div id="google-signin" class="g-signin2" data-width="190" data-height="27" data-onsuccess="onGoogleSignIn" data-longtitle="true" target="_blank" href="https://accounts.google.com/o/oauth2/auth?redirect_uri=http://localhost:3001/oauth2callback&response_type=code&client_id=464160879237-kk1t3ap3fod06dh11i5qdmb9t844r1b6.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile"
+                 title="Войти через Google">Войти через Google</div>-->
         </section>
     </div>
 
@@ -79,6 +82,8 @@
 
 <link rel="stylesheet" href="css/normalize.css">
 <link rel="stylesheet" href="css/style.css">
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+
 <script src="bundle.js"></script>
 </body>
 </html>
