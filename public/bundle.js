@@ -97,6 +97,7 @@
 	    joinBtn = document.getElementById("join-button"),
 	    imgElement = document.getElementById("imgElem"),
 	    userAvatar = document.getElementById("avatarImg"),
+	    snackbarContainer = document.querySelector('#snackbar-message'),
 	    removeUserBtn = document.getElementById("removeUser");
 	
 	module.exports = function (socket) {
@@ -130,6 +131,7 @@
 	                };
 	                xhr.send('idtoken=' + id_token);
 	            }
+	
 	            imgElement.addEventListener("change", this.handleImages, false);
 	            userAvatar.addEventListener("change", this.changeAvatar, false);
 	            logInBtn.addEventListener('click', function (e) {
@@ -141,6 +143,7 @@
 	            }, false);
 	            signUpBtn.addEventListener('click', function (e) {
 	                e.preventDefault();
+	                signUpBtn.setAttribute('disabled', 'true');
 	                _this.signUp();
 	            }, false);
 	            joinBtn.addEventListener('click', function () {
@@ -209,9 +212,11 @@
 	                    if (isClientNew) {
 	                        clientsHelper.createClient({ nickname: nickname, password: password }).then(function () {
 	                            _this2.connectUser(nickname);
+	                            signUpBtn.setAttribute('disabled', 'false');
 	                        });
 	                    } else {
-	                        alert('nickname ' + nickname + ' already exists. Please choose another name');
+	                        _this2.showSnackbarMessage('nickname ' + nickname + ' already exists. Please choose another name', 5000);
+	                        signUpBtn.setAttribute('disabled', 'false');
 	                    }
 	                });
 	            }
@@ -227,9 +232,19 @@
 	                    if (isClientAuthorized) {
 	                        _this3.connectUser(nickname);
 	                    } else {
-	                        alert('Nickname or password is wrong');
+	                        _this3.showSnackbarMessage('Nickname or password is wrong. Please try again ir sign in with Google');
 	                    }
 	                });
+	            }
+	        },
+	        showSnackbarMessage: function showSnackbarMessage(text, timeoutMs) {
+	            if (text) {
+	                var data = {
+	                    message: text,
+	                    timeout: timeoutMs || 2000,
+	                    actionText: ''
+	                };
+	                snackbarContainer.MaterialSnackbar && snackbarContainer.MaterialSnackbar.showSnackbar(data);
 	            }
 	        },
 	        removeUser: function removeUser() {
@@ -240,10 +255,12 @@
 	            if (confirmation) {
 	                clientsHelper.removeClient().then(function () {
 	                    _this4.disconnectUser(user);
+	                    _this4.showSnackbarMessage('User ' + user + ' has been removed');
 	                });
 	            }
 	        },
 	        connectUser: function connectUser(username) {
+	            this.showSnackbarMessage('Welcome to chat, ' + username + '!');
 	            domHelper.unlock();
 	            historyHelper.showHistory();
 	            this.setCurrentUser(username);
@@ -261,9 +278,9 @@
 	            this.setCurrentUser('');
 	            domHelper.lock();
 	            /*            var auth2 = gapi.auth2.getAuthInstance();
-	                        auth2.signOut().then(function () {
-	                            console.log('User signed out.');
-	                        });*/
+	             auth2.signOut().then(function () {
+	             console.log('User signed out.');
+	             });*/
 	        },
 	        changeAvatar: function changeAvatar() {
 	            var file = this.files && this.files[0];
@@ -275,6 +292,7 @@
 	                var msgAdmin = messageHelper.createMessage('message', 'User ' + user + ' changed avatar', 'admin', user);
 	                socket.send(JSON.stringify(msgAdmin));
 	                historyHelper.updateHistory(msgAdmin);
+	                this.showSnackbarMessage('Your avatar has been changed');
 	            });
 	            if (file) {
 	                reader.readAsDataURL(file);

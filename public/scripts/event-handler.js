@@ -10,6 +10,7 @@ const domHelper = require('./dom-helper'),
     joinBtn = document.getElementById("join-button"),
     imgElement = document.getElementById("imgElem"),
     userAvatar = document.getElementById("avatarImg"),
+    snackbarContainer = document.querySelector('#snackbar-message'),
     removeUserBtn = document.getElementById("removeUser");
 
 module.exports = function (socket) {
@@ -34,11 +35,12 @@ module.exports = function (socket) {
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', '/tokensignin');
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onload = function() {
+                xhr.onload = function () {
                     console.log('Signed in as: ' + xhr.responseText);
                 };
                 xhr.send('idtoken=' + id_token);
             }
+
             imgElement.addEventListener("change", this.handleImages, false);
             userAvatar.addEventListener("change", this.changeAvatar, false);
             logInBtn.addEventListener('click', (e) => {
@@ -51,6 +53,7 @@ module.exports = function (socket) {
             }, false);
             signUpBtn.addEventListener('click', (e) => {
                 e.preventDefault()
+                signUpBtn.setAttribute('disabled', 'true')
                 this.signUp()
             }, false);
             joinBtn.addEventListener('click', () => {
@@ -118,9 +121,11 @@ module.exports = function (socket) {
                     if (isClientNew) {
                         clientsHelper.createClient({nickname, password}).then(()=> {
                             this.connectUser(nickname);
+                            signUpBtn.setAttribute('disabled', 'false')
                         });
                     } else {
-                        alert('nickname ' + nickname + ' already exists. Please choose another name')
+                        this.showSnackbarMessage(`nickname ${nickname} already exists. Please choose another name`, 5000);
+                        signUpBtn.setAttribute('disabled', 'false')
                     }
                 })
             }
@@ -133,10 +138,21 @@ module.exports = function (socket) {
                 clientsHelper.isClientAuthorized(nickname, password).then((isClientAuthorized) => {
                     if (isClientAuthorized) {
                         this.connectUser(nickname);
+
                     } else {
-                        alert('Nickname or password is wrong')
+                        this.showSnackbarMessage(`Nickname or password is wrong. Please try again ir sign in with Google`);
                     }
                 })
+            }
+        },
+        showSnackbarMessage(text, timeoutMs){
+            if (text) {
+                var data = {
+                    message: text,
+                    timeout: timeoutMs || 2000,
+                    actionText: ''
+                };
+                snackbarContainer.MaterialSnackbar && snackbarContainer.MaterialSnackbar.showSnackbar(data);
             }
         },
         removeUser(){
@@ -145,10 +161,12 @@ module.exports = function (socket) {
             if (confirmation) {
                 clientsHelper.removeClient().then(()=> {
                     this.disconnectUser(user);
+                    this.showSnackbarMessage(`User ${user} has been removed`);
                 });
             }
         },
         connectUser (username) {
+            this.showSnackbarMessage(`Welcome to chat, ${username}!`);
             domHelper.unlock();
             historyHelper.showHistory();
             this.setCurrentUser(username);
@@ -165,10 +183,10 @@ module.exports = function (socket) {
             socket.send(JSON.stringify(msg));
             this.setCurrentUser('');
             domHelper.lock();
-/*            var auth2 = gapi.auth2.getAuthInstance();
-            auth2.signOut().then(function () {
-                console.log('User signed out.');
-            });*/
+            /*            var auth2 = gapi.auth2.getAuthInstance();
+             auth2.signOut().then(function () {
+             console.log('User signed out.');
+             });*/
 
         },
         changeAvatar (){
@@ -181,6 +199,7 @@ module.exports = function (socket) {
                 var msgAdmin = messageHelper.createMessage('message', `User ${user} changed avatar`, 'admin', user);
                 socket.send(JSON.stringify(msgAdmin));
                 historyHelper.updateHistory(msgAdmin);
+                this.showSnackbarMessage(`Your avatar has been changed`);
             });
             if (file) {
                 reader.readAsDataURL(file)
