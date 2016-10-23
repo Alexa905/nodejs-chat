@@ -7,6 +7,7 @@ const domHelper = require('./dom-helper'),
     logInBtn = document.getElementById("logInBtn"),
     logOutBtn = document.getElementById("logOutBtn"),
     googleBtn = document.getElementById("google-signin"),
+    joinBtn = document.getElementById("join-button"),
     imgElement = document.getElementById("imgElem"),
     userAvatar = document.getElementById("avatarImg"),
     removeUserBtn = document.getElementById("removeUser");
@@ -40,14 +41,21 @@ module.exports = function (socket) {
             }
             imgElement.addEventListener("change", this.handleImages, false);
             userAvatar.addEventListener("change", this.changeAvatar, false);
-            logInBtn.addEventListener('click', () => {
+            logInBtn.addEventListener('click', (e) => {
+                e.preventDefault()
                 this.logIn()
+
             }, false);
             sendBtn.addEventListener('click', () => {
                 messageHelper.submitMessage()
             }, false);
-            signUpBtn.addEventListener('click', () => {
+            signUpBtn.addEventListener('click', (e) => {
+                e.preventDefault()
                 this.signUp()
+            }, false);
+            joinBtn.addEventListener('click', () => {
+                var modal = document.getElementById('openModal');
+                modal.classList.add('opened');
             }, false);
             logOutBtn.addEventListener('click', () => {
                 this.disconnectUser();
@@ -157,10 +165,10 @@ module.exports = function (socket) {
             socket.send(JSON.stringify(msg));
             this.setCurrentUser('');
             domHelper.lock();
-            var auth2 = gapi.auth2.getAuthInstance();
+/*            var auth2 = gapi.auth2.getAuthInstance();
             auth2.signOut().then(function () {
                 console.log('User signed out.');
-            });
+            });*/
 
         },
         changeAvatar (){

@@ -3,6 +3,7 @@ pure **webSockets** on client side,
 **pure JS**,
 **es6** (transpiled using **babel** and **webpack**) 
 storing data in **MongoDB**,
+**Material Design Light**,
 OAuth2.0
 
 ##Run Locally##

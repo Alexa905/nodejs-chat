@@ -79,7 +79,9 @@ body {
     height: 100%;
     background: #f1f5f8;
 }
-
+.ui .chat .fa.user-icon{
+    vertical-align: 40px;
+}
 .ui .chat .info {
     display: inline-flex;
     -webkit-box-orient: vertical;
@@ -88,7 +90,7 @@ body {
     -ms-flex-direction: column;
     flex-direction: column;
     vertical-align: 40px;
-    width: calc(100% - 65px - 50px);
+    width: calc(100% - 150px);
 }
 
 .ui .chat .info .name {
@@ -315,7 +317,7 @@ body {
 
 .ui .write-form textarea {
     height: 75px;
-    margin: 17px 5% 10px 5%;
+    margin: 17px 5% 0 5%;
     width: 90%;
     outline: none;
     padding: 15px;
@@ -338,15 +340,23 @@ body {
 .ui .avatar, .ui .avatarImg {
     display: inline-block;
 }
+.ui .avatar{
+    display: inline-flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    vertical-align: 40px;
+}
 
 .ui .avatarImg {
     cursor: pointer;
 }
 
-.ui .send {
+.ui #sendMessage {
     color: #7ac5ef;
     text-transform: uppercase;
-    font-weight: 700;
     float: right;
     margin-right: 5%;
     cursor: pointer;
@@ -424,10 +434,6 @@ body {
     z-index: 10;
 }
 
-#logOutBtn {
-    display: none;
-}
-
 ::-webkit-scrollbar {
     width: 12px;
 }
@@ -455,22 +461,6 @@ input.tab-link {
 
 }
 
-.tab input {
-    width: 100%;
-    border-radius: 2px;
-    margin-bottom: 10px;
-    line-height: 16px;
-    padding: 0 5px;
-    border: none;
-    border-bottom: 1px solid #97d1e7;
-}
-
-.tab input:focus {
-    border: none;
-    outline: none;
-    border-bottom: 1px solid #97d1e7;
-}
-
 input[type="button"], .tab input[type="submit"] {
     line-height: 28px;
     background: #97d1e7;
@@ -480,20 +470,7 @@ input[type="button"], .tab input[type="submit"] {
     text-transform: uppercase;
 }
 
-#logOutBtn {
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    display: block;
-    border: none;
-    font-size: 13px;
-    padding: 0 5px;
-    border-radius: 2px;
-}
-.locked #logOutBtn{
-    display: none;
-}
-.locked .tab-area{
+.locked .tab-area {
     display: block;
 }
 
@@ -506,7 +483,8 @@ input[type="button"], .tab input[type="submit"] {
     display: block;
     float: left;
     width: 50%;
-    padding: 5px 0;
+    height: 40px;
+    line-height: 40px;
     text-align: center;
     background: rgb(184, 223, 236);
     box-shadow: rgba(156, 208, 227, .6) 1px 1px 3px;
@@ -522,10 +500,9 @@ input[type="button"], .tab input[type="submit"] {
 }
 
 .tab-area {
-    width: 256px;
     display: none;
     border-radius: 3px;
-    box-shadow: #9cd0e3 1px 8px 15px;
+    box-shadow: #9cd0e3 0px 0px 10px;
     background: #ffffff;
     padding-bottom: 20px;
 }
@@ -539,7 +516,7 @@ input[type="button"], .tab input[type="submit"] {
 .tab {
     clear: both;
     background: #ffffff;
-    padding: 10px 20px;
+    padding: 10px 30px;
     display: none;
 }
 
@@ -549,18 +526,21 @@ h3 {
     margin: 0 0 10px;
 }
 
-h2 {
+.h2 {
     font-size: 16px;
     text-align: center;
-    margin-bottom: 10px;
-    font-weight: 600;
+    margin-bottom: 0;
+    font-weight: 400;
+    line-height: 0;
     color: #7bc4ef;
     text-transform: uppercase;
+
 }
 
 section {
     display: block;
 }
+
 .modalDialog {
     position: fixed;
     font-family: Arial, Helvetica, sans-serif;
@@ -570,28 +550,52 @@ section {
     left: 0;
     background: rgba(0, 0, 0, 0.8);
     z-index: 99999;
-    opacity:0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+
+}
+
+.locked .modalDialog {
     -webkit-transition: opacity 400ms ease-in;
     -moz-transition: opacity 400ms ease-in;
     transition: opacity 400ms ease-in;
-    pointer-events: none;
-    overflow:hidden;
-}
-.modalDialog:target {
-    opacity:1;
+    opacity: 1;
     pointer-events: auto;
 }
+
+#openModal.opened {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#openModal {
+    opacity: 0;
+    pointer-events: none;
+}
+
 .modalDialog > div {
     width: 400px;
     position: relative;
     margin: 10% auto;
-    padding: 5px 20px 13px 20px;
     border-radius: 10px;
     background: #fff;
     background: -moz-linear-gradient(#fff, #999);
     background: -webkit-linear-gradient(#fff, #999);
     background: -o-linear-gradient(#fff, #999);
 }
+
+#join-button {
+    position: absolute;
+    margin: auto;
+    display: block;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 210px;
+}
+
 .close {
     background: #606061;
     color: #FFFFFF;
@@ -610,11 +614,16 @@ section {
     -webkit-box-shadow: 1px 1px 3px #000;
     box-shadow: 1px 1px 3px #000;
 }
+
 .close:hover {
     background: #00d9ff;
 }
-#google-signin{
+
+#google-signin {
     margin: 0 auto;
     width: 190px;
 }
 
+.tab .mdl-textfield {
+    width: 100%;
+}

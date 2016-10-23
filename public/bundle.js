@@ -94,6 +94,7 @@
 	    logInBtn = document.getElementById("logInBtn"),
 	    logOutBtn = document.getElementById("logOutBtn"),
 	    googleBtn = document.getElementById("google-signin"),
+	    joinBtn = document.getElementById("join-button"),
 	    imgElement = document.getElementById("imgElem"),
 	    userAvatar = document.getElementById("avatarImg"),
 	    removeUserBtn = document.getElementById("removeUser");
@@ -131,14 +132,20 @@
 	            }
 	            imgElement.addEventListener("change", this.handleImages, false);
 	            userAvatar.addEventListener("change", this.changeAvatar, false);
-	            logInBtn.addEventListener('click', function () {
+	            logInBtn.addEventListener('click', function (e) {
+	                e.preventDefault();
 	                _this.logIn();
 	            }, false);
 	            sendBtn.addEventListener('click', function () {
 	                messageHelper.submitMessage();
 	            }, false);
-	            signUpBtn.addEventListener('click', function () {
+	            signUpBtn.addEventListener('click', function (e) {
+	                e.preventDefault();
 	                _this.signUp();
+	            }, false);
+	            joinBtn.addEventListener('click', function () {
+	                var modal = document.getElementById('openModal');
+	                modal.classList.add('opened');
 	            }, false);
 	            logOutBtn.addEventListener('click', function () {
 	                _this.disconnectUser();
@@ -253,10 +260,10 @@
 	            socket.send(JSON.stringify(msg));
 	            this.setCurrentUser('');
 	            domHelper.lock();
-	            var auth2 = gapi.auth2.getAuthInstance();
-	            auth2.signOut().then(function () {
-	                console.log('User signed out.');
-	            });
+	            /*            var auth2 = gapi.auth2.getAuthInstance();
+	                        auth2.signOut().then(function () {
+	                            console.log('User signed out.');
+	                        });*/
 	        },
 	        changeAvatar: function changeAvatar() {
 	            var file = this.files && this.files[0];
