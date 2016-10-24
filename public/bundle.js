@@ -143,7 +143,6 @@
 	            }, false);
 	            signUpBtn.addEventListener('click', function (e) {
 	                e.preventDefault();
-	                signUpBtn.setAttribute('disabled', 'true');
 	                _this.signUp();
 	            }, false);
 	            joinBtn.addEventListener('click', function () {
@@ -208,6 +207,7 @@
 	            var nickname = form.elements["signupUser"].value;
 	            var password = form.elements["signupPassword"].value;
 	            if (nickname) {
+	                signUpBtn.setAttribute('disabled', 'true');
 	                clientsHelper.isClientExists(nickname).then(function (isClientNew) {
 	                    if (isClientNew) {
 	                        clientsHelper.createClient({ nickname: nickname, password: password }).then(function () {
@@ -219,6 +219,8 @@
 	                        signUpBtn.setAttribute('disabled', 'false');
 	                    }
 	                });
+	            } else {
+	                this.showSnackbarMessage('Please choose the name');
 	            }
 	        },
 	        logIn: function logIn() {
@@ -235,6 +237,8 @@
 	                        _this3.showSnackbarMessage('Nickname or password is wrong. Please try again ir sign in with Google');
 	                    }
 	                });
+	            } else {
+	                this.showSnackbarMessage('Please enter username');
 	            }
 	        },
 	        showSnackbarMessage: function showSnackbarMessage(text, timeoutMs) {

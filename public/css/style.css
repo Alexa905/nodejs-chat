@@ -427,13 +427,6 @@ body {
     background: #eee;
 }
 
-.control-panel {
-    position: fixed;
-    right: 5px;
-    top: 5px;
-    z-index: 10;
-}
-
 ::-webkit-scrollbar {
     width: 12px;
 }
@@ -549,7 +542,7 @@ section {
     bottom: 0;
     left: 0;
     background: rgba(0, 0, 0, 0.8);
-    z-index: 99999;
+    z-index: 9;
     overflow: hidden;
     opacity: 0;
     pointer-events: none;
@@ -626,4 +619,8 @@ section {
 
 .tab .mdl-textfield {
     width: 100%;
+}
+#snackbar-message{
+    z-index: 10;
+
 }

@@ -53,7 +53,6 @@ module.exports = function (socket) {
             }, false);
             signUpBtn.addEventListener('click', (e) => {
                 e.preventDefault()
-                signUpBtn.setAttribute('disabled', 'true')
                 this.signUp()
             }, false);
             joinBtn.addEventListener('click', () => {
@@ -117,6 +116,7 @@ module.exports = function (socket) {
             var nickname = form.elements["signupUser"].value;
             var password = form.elements["signupPassword"].value;
             if (nickname) {
+                signUpBtn.setAttribute('disabled', 'true')
                 clientsHelper.isClientExists(nickname).then((isClientNew) => {
                     if (isClientNew) {
                         clientsHelper.createClient({nickname, password}).then(()=> {
@@ -128,6 +128,9 @@ module.exports = function (socket) {
                         signUpBtn.setAttribute('disabled', 'false')
                     }
                 })
+            } else{
+                this.showSnackbarMessage(`Please choose the name`);
+
             }
         },
         logIn () {
@@ -143,6 +146,8 @@ module.exports = function (socket) {
                         this.showSnackbarMessage(`Nickname or password is wrong. Please try again ir sign in with Google`);
                     }
                 })
+            } else{
+                this.showSnackbarMessage(`Please enter username`);
             }
         },
         showSnackbarMessage(text, timeoutMs){
