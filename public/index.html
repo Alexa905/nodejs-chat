@@ -3,39 +3,62 @@
 <head>
     <title>WebSocket chat</title>
     <meta charset="utf-8"/>
-    <meta name="google-signin-client_id" content="464160879237-kk1t3ap3fod06dh11i5qdmb9t844r1b6.apps.googleusercontent.com">
+    <meta name="google-signin-client_id"
+          content="464160879237-kk1t3ap3fod06dh11i5qdmb9t844r1b6.apps.googleusercontent.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+
 <div id="nodejs-chat" class="locked">
-    <div id="openModal" class="modalDialog">
-        <div><a href="#close" title="Close" class="fa fa-close">X</a>
+    <div id="modalDialog" class="modalDialog">
+        <a id="join-button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+            Join to chat
+        </a>
+        <div id="openModal">
+            <section id="tab-area" class="tab-area tabs-checked">
+                <input class="tab-link" checked="" type="radio" name="tab" id="logIn">
+                <input class="tab-link" type="radio" name="tab" id="signUp">
+                <label class="tab-link-label" for="logIn">Log In</label>
+                <label class="tab-link-label" for="signUp">Sign Up</label>
+
+                <article class="tab">
+                    <form id="logInForm">
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="text" id="loginUser" name="loginUser">
+                            <label class="mdl-textfield__label" for="loginUser">Username</label>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="text" id="loginPassword" name="loginPassword">
+                            <label class="mdl-textfield__label" for="loginPassword">Password</label>
+                        </div>
+                        <button id="logInBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+                            Join
+                        </button>
+                    </form>
+                </article>
+                <article class="tab">
+                    <form id="signUpForm">
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="text" id="signupUser" name="signupUser">
+                            <label class="mdl-textfield__label" for="signupUser">Username</label>
+                        </div>
+                        <div class="mdl-textfield mdl-js-textfield">
+                            <input class="mdl-textfield__input" type="text" id="signupPassword" name="signupPassword">
+                            <label class="mdl-textfield__label" for="signupPassword">Password</label>
+                        </div>
+                        <button id="signUpBtn" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+                            Join
+                        </button>
+                    </form>
+                </article>
+<!--                <div id="google-signin" class="g-signin2" data-width="190" data-height="27"
+                     data-onsuccess="onGoogleSignIn" data-longtitle="true" target="_blank"
+                     href="https://accounts.google.com/o/oauth2/auth?redirect_uri=http://localhost:3001/oauth2callback&response_type=code&client_id=464160879237-kk1t3ap3fod06dh11i5qdmb9t844r1b6.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile"
+                     title="Войти через Google">Войти через Google
+                </div>-->
+            </section>
         </div>
-    </div>
-    <div class="control-panel">
-        <section id="tab-area" class="tab-area tabs-checked">
-            <input class="tab-link" checked="" type="radio" name="tab" id="logIn">
-            <input class="tab-link" type="radio" name="tab" id="signUp">
-            <label class="tab-link-label" for="logIn">Log In</label>
-            <label class="tab-link-label" for="signUp">Sign Up</label>
-            <article class="tab">
-                <h2>Log In</h2>
-                <form id="logInForm">
-                    <label for=""><input type="text" name="loginUser" placeholder="Username"></label>
-                    <label for=""><input type="password" name="loginPassword" placeholder="Password"></label>
-                    <input type="button" id="logInBtn" value="Join">
-                </form>
-            </article>
-            <article class="tab">
-                <form id="signUpForm">
-                    <h2>Sign Up</h2>
-                    <label for=""><input type="text" name="signupUser" placeholder="Username"></label>
-                    <label for=""><input type="password" name="signupPassword" placeholder="Password"></label>
-                    <input type="button" id="signUpBtn" value="Join">
-                </form>
-            </article>
-<!--            <div id="google-signin" class="g-signin2" data-width="190" data-height="27" data-onsuccess="onGoogleSignIn" data-longtitle="true" target="_blank" href="https://accounts.google.com/o/oauth2/auth?redirect_uri=http://localhost:3001/oauth2callback&response_type=code&client_id=464160879237-kk1t3ap3fod06dh11i5qdmb9t844r1b6.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile"
-                 title="Войти через Google">Войти через Google</div>-->
-        </section>
+
     </div>
 
     <div class="ui">
@@ -60,9 +83,9 @@
                     <div class="name" id="currentUser"></div>
                     <!-- <div class="count">already 1 902 messages</div>-->
                 </div>
-                <input type="button" id="logOutBtn" value="Log Out">
-                <i id="removeUser" title="REMOVE USER" class="fa fa-remove"></i>
-                <!--      <a id="userProfile" title="Profile" class="fa fa-user" href="#openModal"></a>-->
+                <i id="userProfile" title="Profile" class="fa fa-user user-icon"></i>
+                <i id="removeUser" title="REMOVE USER" class="fa fa-remove user-icon"></i>
+                <i id="logOutBtn" class="fa fa-sign-out user-icon" aria-hidden="true" title="SIGN OUT"></i>
 
             </div>
             <ul class="messages" id="messages"></ul>
@@ -74,14 +97,24 @@
                 <label for="imgElem" id="imgSelect" class="fa fa-picture-o">
                     <input type="file" id="imgElem" accept="image/*" style="display:none">
                 </label>
-                <span class="send" id="sendMessage" disabled>Send</span>
+                <button id="sendMessage" class="mdl-button mdl-js-button mdl-button--primary">
+                    Send message
+                </button>
             </div>
         </div>
+    </div>
+    <div id="snackbar-message" class="mdl-js-snackbar mdl-snackbar">
+        <div class="mdl-snackbar__text"></div>
+        <button class="mdl-snackbar__action" type="button"></button>
     </div>
 </div>
 
 <link rel="stylesheet" href="css/normalize.css">
 <link rel="stylesheet" href="css/style.css">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css">
+<script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 
 <script src="bundle.js"></script>

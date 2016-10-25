@@ -94,8 +94,10 @@
 	    logInBtn = document.getElementById("logInBtn"),
 	    logOutBtn = document.getElementById("logOutBtn"),
 	    googleBtn = document.getElementById("google-signin"),
+	    joinBtn = document.getElementById("join-button"),
 	    imgElement = document.getElementById("imgElem"),
 	    userAvatar = document.getElementById("avatarImg"),
+	    snackbarContainer = document.querySelector('#snackbar-message'),
 	    removeUserBtn = document.getElementById("removeUser");
 	
 	module.exports = function (socket) {
@@ -129,16 +131,23 @@
 	                };
 	                xhr.send('idtoken=' + id_token);
 	            }
+	
 	            imgElement.addEventListener("change", this.handleImages, false);
 	            userAvatar.addEventListener("change", this.changeAvatar, false);
-	            logInBtn.addEventListener('click', function () {
+	            logInBtn.addEventListener('click', function (e) {
+	                e.preventDefault();
 	                _this.logIn();
 	            }, false);
 	            sendBtn.addEventListener('click', function () {
 	                messageHelper.submitMessage();
 	            }, false);
-	            signUpBtn.addEventListener('click', function () {
+	            signUpBtn.addEventListener('click', function (e) {
+	                e.preventDefault();
 	                _this.signUp();
+	            }, false);
+	            joinBtn.addEventListener('click', function () {
+	                var modal = document.getElementById('openModal');
+	                modal.classList.add('opened');
 	            }, false);
 	            logOutBtn.addEventListener('click', function () {
 	                _this.disconnectUser();
@@ -198,15 +207,20 @@
 	            var nickname = form.elements["signupUser"].value;
 	            var password = form.elements["signupPassword"].value;
 	            if (nickname) {
+	                signUpBtn.setAttribute('disabled', 'true');
 	                clientsHelper.isClientExists(nickname).then(function (isClientNew) {
 	                    if (isClientNew) {
 	                        clientsHelper.createClient({ nickname: nickname, password: password }).then(function () {
 	                            _this2.connectUser(nickname);
+	                            signUpBtn.setAttribute('disabled', 'false');
 	                        });
 	                    } else {
-	                        alert('nickname ' + nickname + ' already exists. Please choose another name');
+	                        _this2.showSnackbarMessage('nickname ' + nickname + ' already exists. Please choose another name', 5000);
+	                        signUpBtn.setAttribute('disabled', 'false');
 	                    }
 	                });
+	            } else {
+	                this.showSnackbarMessage('Please choose the name');
 	            }
 	        },
 	        logIn: function logIn() {
@@ -220,9 +234,21 @@
 	                    if (isClientAuthorized) {
 	                        _this3.connectUser(nickname);
 	                    } else {
-	                        alert('Nickname or password is wrong');
+	                        _this3.showSnackbarMessage('Nickname or password is wrong. Please try again ir sign in with Google');
 	                    }
 	                });
+	            } else {
+	                this.showSnackbarMessage('Please enter username');
+	            }
+	        },
+	        showSnackbarMessage: function showSnackbarMessage(text, timeoutMs) {
+	            if (text) {
+	                var data = {
+	                    message: text,
+	                    timeout: timeoutMs || 2000,
+	                    actionText: ''
+	                };
+	                snackbarContainer.MaterialSnackbar && snackbarContainer.MaterialSnackbar.showSnackbar(data);
 	            }
 	        },
 	        removeUser: function removeUser() {
@@ -233,10 +259,12 @@
 	            if (confirmation) {
 	                clientsHelper.removeClient().then(function () {
 	                    _this4.disconnectUser(user);
+	                    _this4.showSnackbarMessage('User ' + user + ' has been removed');
 	                });
 	            }
 	        },
 	        connectUser: function connectUser(username) {
+	            this.showSnackbarMessage('Welcome to chat, ' + username + '!');
 	            domHelper.unlock();
 	            historyHelper.showHistory();
 	            this.setCurrentUser(username);
@@ -253,10 +281,10 @@
 	            socket.send(JSON.stringify(msg));
 	            this.setCurrentUser('');
 	            domHelper.lock();
-	            var auth2 = gapi.auth2.getAuthInstance();
-	            auth2.signOut().then(function () {
-	                console.log('User signed out.');
-	            });
+	            /*            var auth2 = gapi.auth2.getAuthInstance();
+	             auth2.signOut().then(function () {
+	             console.log('User signed out.');
+	             });*/
 	        },
 	        changeAvatar: function changeAvatar() {
 	            var file = this.files && this.files[0];
@@ -268,6 +296,7 @@
 	                var msgAdmin = messageHelper.createMessage('message', 'User ' + user + ' changed avatar', 'admin', user);
 	                socket.send(JSON.stringify(msgAdmin));
 	                historyHelper.updateHistory(msgAdmin);
+	                this.showSnackbarMessage('Your avatar has been changed');
 	            });
 	            if (file) {
 	                reader.readAsDataURL(file);
